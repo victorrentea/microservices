@@ -1,0 +1,142 @@
+
+PREP:
+
+
+======
+
+- Cea mai mare retea hoteliera: airbnb
+- taxi: uber
+- video rental: netflix
+
+- 75% din companies fortune 100 din '90 -> gone. Astazi doar software based companies
+- go faster: 
+- o schimbare/idee s-o duci in prod: astepti implementarea in multe puncte + QUEUING ==> 2 sapt de munca == 3 luni pana la PROD
+- one way faster: cloud computing = SCAD infra cost & delays
+- alt mod: sparg monolitii in Bounded Contexts
+	- DDD
+	- Internally Consistent
+	- Delineate them..
+	- Feature teams: Amazon (2 pizza). ==> putini oameni lucrand la un mic 'produs'
+- dar Networking --> NFR ++
+	
+	
+- start.spring.io
+	
+	
+1) reservation-service: 
+	- Web
+	- H2
+	- JPA
+	- Actuator
+	- Rest Repositories
+	- Zipkin - distributed tracing
+	- cloud stream
+	- rabbit mq
+	- Config Client
+	- Eureka Service Discovery
+	- Dev tools
+	- Lombok
+	
+	
+	- @Entity Reservation{id,reservationName} + ctr cu name + toString
+
+	- SDJ Repo @RepositoryRestResouce
+		- findByReservationName @RestResource(path = "by-name")
+	
+	- DummyDataCLR
+		- Stream.of("nume"...).map(Reservation::new).forEach(repo::save);
+		- repo.findAll().forEach(System.out::println);
+
+- START
+
+- change port 
+	application.properties
+	-Dserver.port=
+	set SERVER_PORT=8020
+	mvn spring-boot:run 
+
+2) config-server
+	- config server
+	@EnableConfigServer
+	- server.port=8888
+	- spring.cloud.config.server.git.uri=github...
+- START config server 
+- http://localhost:8888/reservation-service/default
+	- overrides
+- use in ms: 
+	spring.cloud.config.uri=
+	spring.application.name=
+- inject un 'message' + @RefreshScope
+- git push config
+- curl http://localhost:8090/actuator/refresh -X POST
+	
+3) eureka-service
+	- Eureka discovery
+	- config client
+	
+	- localhost:8761
+- @EnableEurekaServer
+- @EnableDiscoveryClient in reservation-service
+
+4) reservation-client
+	- Web
+	- hateoas
+	- Hystrix
+	- Config Client	
+	- cloud stream	
+	- rabbit
+	- eureka discovery
+	- zuul
+	- zipkin
+	- dev tools
+
+- ZUUL : 
+	- CORS - policy
+	- 9999/reservation-service/reservations 
+	
+- Dc vreau tranzitie API Gateway
+	- un @RestController
+	- x = restTemplate.exchange("http://reservation-service/reservations", GET, null)
+		- Load balancing
+	- class Reservation {reservationName}	
+	- cum ii zic referinta ?
+		- exercitiu: List<String> vs ListString extends ArrayList<String>
+		
+		- ParameterizedTypeReference<Resources<Reservation>> **********************************
+		
+	- in .exchange ca ultim parametru
+	
+	TEST
+	
+- Daca serviciul e cazut ?
+	- @EnableHystrix
+	- @EnableCircuitBreaker
+	- return new ArrayList<>();
+	- @HystrixComand(fallbackMethod='')
+	- Asta merge pt READ, dar ce faci cu WRITE
+	
+*** MESSAGING ***
+- @EnableBinding(Source.class) pe client
+	- = convenience
+	- interface with multiple methods with @Output, data in @EnableBinding, fiecare conectata 	
+	- @POstMapping(Reservation r)
+	- @AUtowired Source source;
+	- source.output().send(MessageBuilder.withPayload(r.getRN).build());
+	
+- explica config 
+
+- @EnableBinding(Sink.class) pe ms
+	- @IntegrationComponentScan
+	- @MessageEndpoint Clasa { @ServiceActivator(inputChannel = Sink.INPUT) void acceptNewRes(String rn){repo.save()}}
+	
+	
+- TEST: 
+	- read/write POSTMAN
+	- STOP ms
+	- read/write
+
+	
+5) Hystrix dashboard
+	- hystrix dashboard
+	- config client
+	- eureka discovery
