@@ -12,6 +12,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
+import org.springframework.stereotype.Component;
 
 @SpringBootApplication
 public class ReservationServiceApplication {
@@ -22,16 +23,18 @@ public class ReservationServiceApplication {
 
 }
 
-//class DummyCLR implements CommandLineRunner {
-//	@Autowired
-//	private ReservationRestRepository repo;
-//
-//	public void run(String... args) throws Exception {
-//		Stream.of("Bianca", "Marian", "Victor", "Adrian", "Eugen")
-//			.map(mapper)
-//	}
-//	
-//}
+@Component
+class DummyCLR implements CommandLineRunner {
+	@Autowired
+	private ReservationRestRepository repo;
+
+	public void run(String... args) throws Exception {
+		Stream.of("Bianca", "Marian", "Victor", "Adrian", "Eugen")
+			.map(Reservation::new)
+			.forEach(repo::save);
+	}
+	
+}
 
 
 @RepositoryRestResource(path= "reservations")
