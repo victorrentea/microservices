@@ -1,5 +1,9 @@
 package victor.ms.client;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,11 +14,15 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
+import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
@@ -49,12 +57,13 @@ public class ReservationClientApp {
 
 }
 
-
 @Slf4j
+@RequiredArgsConstructor
 @RestController
 class MyController {
-	@Autowired
-	private RestTemplate rest;
+	private final RestTemplate rest;
+
+
 	public List<String> fallbackResponse() {
 		return asList("Basescu");
 	}
@@ -65,49 +74,26 @@ class MyController {
 	@GetMapping("reservations")
 	public List<String> getReservationNames() {
 		log.info("Get");
-		ParameterizedTypeReference<List<Reservation>> type = new ParameterizedTypeReference<>() {};
-		ResponseEntity<List<Reservation>> entity =
-				rest.exchange("http://reservation-service/reservations", 
-						HttpMethod.GET, null, type);
+		ResponseEntity<List<Reservation>> entity = rest.exchange("http://reservation-service/reservations",
+						HttpMethod.GET, null, new ParameterizedTypeReference<>() {});
 		
-		return entity.getBody()
-			.stream()
+		return entity.getBody().stream()
 			.map(Reservation::getReservationName)
 			.collect(toList());
 	}
-	
-//	@Autowired
-//	private Source source;
-//	private final static Logger log = LoggerFactory.getLogger(MyController.class);
-//
-//	@PostMapping("reservation")
-//	public void createReservation(@RequestBody Reservation reservation) {
-//		source.output().send(MessageBuilder.withPayload(reservation.getReservationName()).build());
-//		log.debug("Message Sent");
-//		System.out.println("Message Sent");
-//	}
+
+	private final StreamBridge streamBridge;
+
+	@PostMapping("reservation")
+	public void createReservation(@RequestBody Reservation reservation) {
+		streamBridge.send("createReservation-0", reservation.getReservationName());
+		log.info("Message Sent");
+	}
 }
 
+@Data
 class Reservation {
 	private String reservationName;
-
-	public Reservation(String reservationName) {
-		this.reservationName = reservationName;
-	}
-
-	public String getReservationName() {
-		return reservationName;
-	}
-
-	public void setReservationName(String reservationName) {
-		this.reservationName = reservationName;
-	}
-
-	public Reservation() {
-		super();
-	}
-	
-	
 }
 
 

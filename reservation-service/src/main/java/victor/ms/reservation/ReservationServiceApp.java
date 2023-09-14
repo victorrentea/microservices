@@ -18,10 +18,12 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.integration.annotation.IntegrationComponentScan;
 import org.springframework.integration.annotation.MessageEndpoint;
+import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -52,21 +54,15 @@ public class ReservationServiceApp {
 		log.info("Get");
 		return repo.findAll();
 	}
-}
 
-@MessageEndpoint
-class ReservationCreator {
-	private final static Logger log = LoggerFactory.getLogger(ReservationCreator.class);
-	@Autowired
-	private ReservationRepo repo;
 	@Bean
-	Consumer<String> createReservation() {
+	public Consumer<String> createReservationMessageListener() {
 		return rn-> {
-			System.out.println("Primit rezervare de creat: " + rn);
-			log.debug("execut");
+			log.info("Creating reservation via MQ: " + rn);
 			repo.save(new Reservation(rn));
 		};
 	}
+
 }
 
 
