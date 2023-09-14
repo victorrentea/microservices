@@ -38,6 +38,8 @@ resilience4j:
          limit-refresh-period: 1m
          limit-for-period: 10
          register-health-indicator: true
+         timeout-duration: 2s
+
 
 
 eureka:
