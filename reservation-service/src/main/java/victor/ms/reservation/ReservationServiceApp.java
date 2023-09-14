@@ -21,6 +21,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.http.ResponseEntity;
 import org.springframework.integration.annotation.IntegrationComponentScan;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.stereotype.Component;
@@ -53,6 +54,36 @@ public class ReservationServiceApp {
 	public List<Reservation> getAll() {
 		log.info("Get");
 		return repo.findAll();
+	}
+
+	@GetMapping("/fragile")
+	public String fragile() throws InterruptedException {
+		Thread.sleep(3000);
+		return "response from a fragile slow system";
+	}
+
+	@GetMapping("/rate-limited")
+	public String rateLimited() {
+		return "fast free response, but expensive if more than 10 / minute";
+	}
+
+	@GetMapping("flaky")
+	public String flaky() {
+		if (Math.random() < .7) {
+			throw new IllegalArgumentException("FLAKY ERROR");
+		}
+		return "Normal Result";
+	}
+
+	@GetMapping("flaky-slow")
+	public ResponseEntity<String> flakySlow() throws InterruptedException {
+		if (Math.random() < .3) {
+			Thread.sleep(100*1000);
+		}
+		if (Math.random() < .5) {
+			return ResponseEntity.internalServerError().body("Fast ERROR");
+		}
+		return ResponseEntity.ok("Normal Result");
 	}
 
 	@Bean
