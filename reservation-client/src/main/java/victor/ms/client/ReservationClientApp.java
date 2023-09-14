@@ -1,5 +1,8 @@
 package victor.ms.client;
 
+import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
@@ -33,7 +36,7 @@ import static java.util.stream.Collectors.toList;
 @EnableDiscoveryClient
 @SpringBootApplication
 public class ReservationClientApp {
-	
+
 	@Bean
 	@LoadBalanced
 	public RestTemplate restTemplate(RestTemplateBuilder builder) {
@@ -46,31 +49,22 @@ public class ReservationClientApp {
 
 }
 
+
+@Slf4j
 @RestController
 class MyController {
-	@Value("${message:nuefrate}")
-	private String message;
-	
-	@GetMapping("message")
-	public String getMessage() {
-		return message;
-	}
-	
 	@Autowired
 	private RestTemplate rest;
-	
 	public List<String> fallbackResponse() {
 		return asList("Basescu");
 	}
 
 //	@CircuitBreaker
 //	@HystrixCommand(fallbackMethod = "fallbackResponse")
+
 	@GetMapping("reservations")
 	public List<String> getReservationNames() {
-		List<String> lista14 = new ArrayList<String>(); // NU ai cum sa obtii <String> din lista14 datorita Type Erasure
-		List<String> lista = new ArrayList<String>() { }; // MAMA!! se pastreaza <String> din cauza ca subclasam
-		
-		
+		log.info("Get");
 		ParameterizedTypeReference<List<Reservation>> type = new ParameterizedTypeReference<>() {};
 		ResponseEntity<List<Reservation>> entity =
 				rest.exchange("http://reservation-service/reservations", 

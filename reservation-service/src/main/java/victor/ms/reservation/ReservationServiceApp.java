@@ -1,5 +1,6 @@
 package victor.ms.reservation;
 
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
@@ -7,32 +8,49 @@ import java.util.stream.Stream;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
-import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.event.EventListener;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 import org.springframework.integration.annotation.IntegrationComponentScan;
 import org.springframework.integration.annotation.MessageEndpoint;
-import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 
+@Slf4j
 @SpringBootApplication
 @EnableDiscoveryClient
 @IntegrationComponentScan
+@RestController
 public class ReservationServiceApp {
 
 	public static void main(String[] args) {
 		SpringApplication.run(ReservationServiceApp.class, args);
+	}
+
+	@Autowired
+	private ReservationRepo repo;
+
+	@EventListener(ApplicationStartedEvent.class)
+	public void insertDummyData() {
+		Stream.of("Bianca", "Marian", "Victor", "Adrian", "Eugen")
+				.map(Reservation::new)
+				.forEach(repo::save);
+	}
+
+	@GetMapping("/reservations")
+	public List<Reservation> getAll() {
+		log.info("Get");
+		return repo.findAll();
 	}
 }
 
@@ -40,7 +58,7 @@ public class ReservationServiceApp {
 class ReservationCreator {
 	private final static Logger log = LoggerFactory.getLogger(ReservationCreator.class);
 	@Autowired
-	private ReservationRestRepository repo;
+	private ReservationRepo repo;
 	@Bean
 	Consumer<String> createReservation() {
 		return rn-> {
@@ -51,85 +69,24 @@ class ReservationCreator {
 	}
 }
 
-@Component
-class DummyCLR implements CommandLineRunner {
-	@Autowired
-	private ReservationRestRepository repo;
 
-	public void run(String... args) throws Exception {
-		Stream.of("Bianca", "Marian", "Victor", "Adrian", "Eugen")
-			.map(Reservation::new)
-			.forEach(repo::save);
-	}
-	
-}
-
-@RestController
-class MessageController {
-	@Autowired
-	private MessageProvider provider;
-	
-	public MessageController() {
-		System.out.println("new instance");
-	}
-	@GetMapping("message")
-	public String getMessage() {
-		return provider.getMessage();
-	}
-}
-
-@Component
-@RefreshScope
-class MessageProvider {
-	
-	@Value("${message:nuefrate}")
-	private String message;
-	
-	public String getMessage() {
-		return message;
-	}
+interface ReservationRepo extends JpaRepository<Reservation, Long> {
 }
 
 
-@RepositoryRestResource(path= "reservations")
-interface ReservationRestRepository extends JpaRepository<Reservation, Long> {
-	
-}
-
-
+@Data
 @Entity
 class Reservation {
 	@Id
 	@GeneratedValue
 	private Long id;
-	
 	private String reservationName;
 	
 	private Reservation() {
 	}
-	
 	public Reservation(String reservationName) {
 		this.reservationName = reservationName;
 	}
 
-
-
-	public Long getId() {
-		return id;
-	}
-
-	public void setId(Long id) {
-		this.id = id;
-	}
-
-	public String getReservationName() {
-		return reservationName;
-	}
-
-	public void setReservationName(String reservationName) {
-		this.reservationName = reservationName;
-	}
-	
-	
 }
 
