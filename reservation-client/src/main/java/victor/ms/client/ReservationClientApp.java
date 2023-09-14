@@ -1,5 +1,7 @@
 package victor.ms.client;
 
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.timelimiter.annotation.TimeLimiter;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -26,9 +28,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
+import static java.time.Duration.ofSeconds;
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
 
@@ -48,7 +52,10 @@ public class ReservationClientApp {
 	@Bean
 	@LoadBalanced
 	public RestTemplate restTemplate(RestTemplateBuilder builder) {
-		return builder.build();
+		return builder
+				.setConnectTimeout(ofSeconds(2))
+				.setReadTimeout(ofSeconds(2))
+				.build();
 	}
 
 	public static void main(String[] args) {
@@ -64,14 +71,14 @@ class MyController {
 	private final RestTemplate rest;
 
 
-	public List<String> fallbackResponse() {
+	public List<String> fallbackResponse(Exception e)
+	{
+		log.error("Recovered from ", e);
 		return asList("Basescu");
 	}
 
-//	@CircuitBreaker
-//	@HystrixCommand(fallbackMethod = "fallbackResponse")
-
 	@GetMapping("reservations")
+	@CircuitBreaker(name = "get-reservations",fallbackMethod = "fallbackResponse")
 	public List<String> getReservationNames() {
 		log.info("Get");
 		ResponseEntity<List<Reservation>> entity = rest.exchange("http://reservation-service/reservations",
@@ -86,7 +93,7 @@ class MyController {
 
 	@PostMapping("reservation")
 	public void createReservation(@RequestBody Reservation reservation) {
-		streamBridge.send("createReservation-0", reservation.getReservationName());
+		streamBridge.send("createReservation", reservation.getReservationName());
 		log.info("Message Sent");
 	}
 }
