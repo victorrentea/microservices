@@ -1,23 +1,6 @@
 version: '3.8'
 
 services:
-  postgres:
-    image: postgres:11
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: postgres
-    ports:
-      - "5432:5432"
-
-#  wiremock:
-#    image: wiremock/wiremock
-#    volumes:
-#      - ../src/test/wiremock:/home/wiremock
-#    command: --async-response-enabled=true
-#    ports:
-#      - "9999:8080"
-
   rabbit:
     image: rabbitmq:3-management #has the management plugin preinstalled
     ports:
