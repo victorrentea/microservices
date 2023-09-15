@@ -8,8 +8,8 @@ resilience4j:
   bulkhead:
     instances:
       fragile:
-        max-concurrent-calls: 2
-        max-wait-duration: 500ms
+        max-concurrent-calls:
+        max-wait-duration:
   circuitbreaker:
     instances:
       get-reservations:
