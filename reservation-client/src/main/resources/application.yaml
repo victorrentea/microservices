@@ -30,7 +30,6 @@ resilience4j:
         wait-duration:
         max-attempts:
       flaky-slow:
-        max-attempts:
         retry-exceptions:
 
   ratelimiter:
