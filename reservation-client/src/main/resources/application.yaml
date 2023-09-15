@@ -14,31 +14,32 @@ resilience4j:
     instances:
       get-reservations:
         register-health-indicator: true
-        failure-rate-threshold: 50
         # 50% slow ones
-        slow-call-duration-threshold: 1s
-        slow-call-rate-threshold: 50
-        #seconds or count
+#        slow-call-duration-threshold: 1s
+#        slow-call-rate-threshold: 50
+        # during last [seconds or count] ...
         sliding-window-type: count_based
         sliding-window-size: 20
-        #back CLOSED
+        # OPEN if:
+        failure-rate-threshold: 50
+        # and try to CLOSE it back after ...
         wait-duration-in-open-state: 3s
   retry:
     instances:
       flaky:
-        wait-duration: 100ms
-        max-attempts: 3
+        wait-duration:
+        max-attempts:
       flaky-slow:
-        max-attempts: 3
+        max-attempts:
         retry-exceptions:
-          - org.springframework.web.client.ResourceAccessException
+
   ratelimiter:
     instances:
       rate-limited:
-         limit-refresh-period: 1m
-         limit-for-period: 10
          register-health-indicator: true
          timeout-duration: 2s
+         limit-refresh-period:
+         limit-for-period:
 
 
 
