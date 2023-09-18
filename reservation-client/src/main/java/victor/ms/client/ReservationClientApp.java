@@ -17,6 +17,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -49,6 +50,7 @@ public class ReservationClientApp {
 	@LoadBalanced
 	public RestTemplate restTemplate(RestTemplateBuilder builder) {
 		return builder
+				// aici : iti faci un RestTemplate dedicat cu connect/read timeoout
 				.setConnectTimeout(ofSeconds(4))
 				.setReadTimeout(ofSeconds(4))
 				.build();
@@ -107,6 +109,9 @@ class MyController {
 		return "Rate Limit Reached: " + e;
 	}
 
+
+
+
 	private static final AtomicInteger retryAtomic = new AtomicInteger();
 	@GetMapping("flaky")
 	@Retry(name = "flaky")
@@ -120,8 +125,16 @@ class MyController {
 		}
 	}
 
+
+
+
+
 	@GetMapping("flaky-slow")
 	@Retry(name = "flaky-slow")
+//	@Transactional // depinde cum pica:
+//	a) n-ai bani < NU RETRY
+//	b) OptimisticLockingException < DA RETRY
+//	b) OptimisticLockingException < DA RETRY
 	public String flakySlow() {
 		log.info("Request #" + retryAtomic.incrementAndGet());
 		try {
@@ -131,6 +144,10 @@ class MyController {
 			throw e;
 		}
 	}
+
+
+
+
 
 
 	private final StreamBridge streamBridge;

@@ -8,8 +8,8 @@ resilience4j:
   bulkhead:
     instances:
       fragile:
-        max-concurrent-calls:
-        max-wait-duration:
+        max-concurrent-calls: 2
+        max-wait-duration: 10s
   circuitbreaker:
     instances:
       get-reservations:
@@ -27,18 +27,20 @@ resilience4j:
   retry:
     instances:
       flaky:
-        wait-duration:
-        max-attempts:
+        wait-duration: 50
+        max-attempts: 3
+        exponential-backoff-multiplier: 1.3
       flaky-slow:
         retry-exceptions:
+          - org.springframework.web.client.ResourceAccessException
 
   ratelimiter:
     instances:
       rate-limited:
          register-health-indicator: true
          timeout-duration: 2s
-         limit-refresh-period:
-         limit-for-period:
+         limit-refresh-period: 1m
+         limit-for-period: 10
 
 
 

@@ -58,6 +58,7 @@ public class ReservationServiceApp {
 
 	@GetMapping("/fragile")
 	public String fragile() throws InterruptedException {
+		log.info("Pe cealalta parte TraceID ajunge ");
 		Thread.sleep(3000);
 		return "response from a fragile slow system";
 	}
@@ -68,7 +69,8 @@ public class ReservationServiceApp {
 	}
 
 	@GetMapping("flaky")
-	public String flaky() {
+	public String flaky() throws InterruptedException {
+		Thread.sleep(50);
 		if (Math.random() < .7) {
 			throw new IllegalArgumentException("FLAKY ERROR");
 		}
@@ -81,7 +83,7 @@ public class ReservationServiceApp {
 			Thread.sleep(100*1000);
 		}
 		if (Math.random() < .5) {
-			return ResponseEntity.internalServerError().body("Fast ERROR");
+			return ResponseEntity.internalServerError().body("EROARE DE BIZ. DACA REINCERCI, DEGEABA REINCERCI");
 		}
 		return ResponseEntity.ok("Normal Result");
 	}
