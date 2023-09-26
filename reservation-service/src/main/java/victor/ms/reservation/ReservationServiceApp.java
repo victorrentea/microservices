@@ -77,13 +77,18 @@ public class ReservationServiceApp {
 
 	@GetMapping("flaky-slow")
 	public ResponseEntity<String> flakySlow() throws InterruptedException {
-		if (Math.random() < .3) {
-			Thread.sleep(100*1000);
-		}
-		if (Math.random() < .5) {
+		double r = Math.random();
+		if (r < .3) {
+			// 30% chance FAST KO
 			return ResponseEntity.internalServerError().body("Fast ERROR");
+		} else if (r < .6) {
+			// 30% chance SLOW OK
+			Thread.sleep(100*1000);
+			return ResponseEntity.ok("Late but OK result");
+		} else {
+			//40 % chance FAST OK
+			return ResponseEntity.ok("Normal Result");
 		}
-		return ResponseEntity.ok("Normal Result");
 	}
 
 	@Bean
@@ -96,24 +101,4 @@ public class ReservationServiceApp {
 
 }
 
-
-interface ReservationRepo extends JpaRepository<Reservation, Long> {
-}
-
-
-@Data
-@Entity
-class Reservation {
-	@Id
-	@GeneratedValue
-	private Long id;
-	private String reservationName;
-	
-	private Reservation() {
-	}
-	public Reservation(String reservationName) {
-		this.reservationName = reservationName;
-	}
-
-}
 

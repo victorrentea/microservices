@@ -30,3 +30,6 @@ public class ReservationServiceHealthMetric implements HealthIndicator {
     return Health.down().build();
   }
 }
+
+
+// Feign reservation-service

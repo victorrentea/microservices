@@ -1,8 +1,11 @@
 spring.application.name: reservation-client
-.com.netflix.discovery: WARN
+
 server.port: 8080
 spring.cloud.stream.bindings:
   createReservation.destination: reservations
+
+
+
 
 resilience4j:
   bulkhead:
@@ -48,3 +51,13 @@ eureka:
 logging:
   level:
     com.netflix.discovery: WARN
+
+spring:
+  cloud:
+    openfeign:
+      client:
+        config:
+          reservation-service:
+            url: "http://reservation-service"
+            connect-timeout: 2_000
+            read-timeout: 2_000
