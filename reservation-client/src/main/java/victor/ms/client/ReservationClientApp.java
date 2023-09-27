@@ -40,14 +40,20 @@ public class ReservationClientApp {
     SpringApplication.run(ReservationClientApp.class, args);
   }
 
+
   @Bean
   @LoadBalanced
-  public RestTemplate restTemplate(RestTemplateBuilder builder) {
-    return builder
-        .setConnectTimeout(ofSeconds(4))
-        .setReadTimeout(ofSeconds(4))
-        .build();
+  public RestTemplate restTemplate() {
+    return new RestTemplate();
   }
+//  @Bean
+//  @LoadBalanced
+//  public RestTemplate restTemplate(RestTemplateBuilder builder) {
+//    return builder
+//        .setConnectTimeout(ofSeconds(4))
+//        .setReadTimeout(ofSeconds(4))
+//        .build();
+//  }
 }
 
 

@@ -75,19 +75,24 @@ public class ReservationServiceApp {
 		return "Normal Result";
 	}
 
+	@GetMapping("slow")
+	public String slow() throws InterruptedException {
+		Thread.sleep(300*1000); // 100 sec
+		return "SLOW";
+	}
 	@GetMapping("flaky-slow")
 	public ResponseEntity<String> flakySlow() throws InterruptedException {
 		double r = Math.random();
 		if (r < .3) {
-			// 30% chance FAST KO
-			return ResponseEntity.internalServerError().body("Fast ERROR");
+			// 30% chance FAST KO 400
+			return ResponseEntity.badRequest().body("Fast ERROR not to be retried eg invalid request");
 		} else if (r < .6) {
-			// 30% chance SLOW OK
-			Thread.sleep(100*1000);
+			// 30% chance SLOW OK ?
+			Thread.sleep(100*1000); // 100s
 			return ResponseEntity.ok("Late but OK result");
 		} else {
-			//40 % chance FAST OK
-			return ResponseEntity.ok("Normal Result");
+			// 40 % chance FAST OK
+			return ResponseEntity.ok("FAST OK");
 		}
 	}
 

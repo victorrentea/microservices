@@ -34,7 +34,8 @@ resilience4j:
       flaky-slow:
         max-attempts: 3
         retry-exceptions:
-          - org.springframework.web.client.ResourceAccessException
+          - feign.RetryableException
+#          - org.springframework.web.client.ResourceAccessException
   ratelimiter:
     instances:
       rate-limited:
@@ -58,6 +59,11 @@ spring:
       client:
         config:
           reservation-service:
-            url: "http://reservation-service"
+            url: "http://localhost:8081"
             connect-timeout: 2_000
             read-timeout: 2_000
+
+
+# ~~~~ Actuator ~~~~
+management.endpoints.web.exposure.include: "*"
+management.endpoint.prometheus.enabled: true

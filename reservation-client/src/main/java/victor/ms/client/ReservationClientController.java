@@ -68,6 +68,13 @@ public class ReservationClientController {
     return rest.getForObject("http://reservation-service/rate-limited", String.class);
   }
 
+
+  @GetMapping("slow")
+  public String slow() {
+//    return rest.getForObject("http://reservation-service/slow", String.class);
+    return feignClient.slow();
+  }
+
   public String rateLimitReached(Exception e) {
     return "Rate Limit Reached: " + e;
   }
@@ -86,12 +93,12 @@ public class ReservationClientController {
   }
 
   @GetMapping("flaky-slow")
-  @Retry(name = "flaky-slow")
+  @Retry(name = "flaky-slow") // resilience4j (successor of hystrix)
   public String flakySlow() {
     log.info("Request #" + retryAtomic.incrementAndGet());
     try {
-      return rest.getForObject("http://reservation-service/flaky-slow", String.class);
-//      return feignClient.flakySlow();
+//      return rest.getForObject("http://reservation-service/flaky-slow", String.class);
+      return feignClient.flakySlow();
     } catch (RestClientException e) {
       log.error("Thrown: " + e);
       throw e;
