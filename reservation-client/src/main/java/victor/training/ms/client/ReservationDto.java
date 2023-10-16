@@ -1,4 +1,4 @@
-package victor.ms.client;
+package victor.training.ms.client;
 
 import lombok.Data;
 

@@ -16,16 +16,16 @@ resilience4j:
   circuitbreaker:
     instances:
       get-reservations:
-        register-health-indicator: true
-        failure-rate-threshold: 50
+        sliding-window-size: 20
+        #seconds or count
+        sliding-window-type: time_based
+        failure-rate-threshold: 90
+        #go to HALF_OPEN state after X seconds
+        wait-duration-in-open-state: 3s
         # 50% slow ones
         slow-call-duration-threshold: 1s
         slow-call-rate-threshold: 50
-        #seconds or count
-        sliding-window-type: count_based
-        sliding-window-size: 20
-        #back CLOSED
-        wait-duration-in-open-state: 3s
+        register-health-indicator: true
   retry:
     instances:
       flaky:

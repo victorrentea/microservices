@@ -1,4 +1,4 @@
-package victor.ms.client;
+package victor.training.ms.client;
 
 import io.github.resilience4j.bulkhead.annotation.Bulkhead;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
@@ -53,6 +53,8 @@ public class ReservationClientController {
 
   @GetMapping("fragile")
   @Bulkhead(name = "fragile")
+  // pe SQL heavy (eg exporturi),
+  // pe apeluri catre COBOL mainframe
   public String fragile() {
     int id = fragileAtomic.incrementAndGet();
     log.info("Sending id:" + id);
@@ -62,7 +64,7 @@ public class ReservationClientController {
   }
 
   @GetMapping("rate-limited")
-  @RateLimiter(name = "rate-limited", fallbackMethod = "rateLimitReached")
+  @RateLimiter(name = "rate-limited", fallbackMethod = "rateLimitReached") // resilience4j (successor of hystrix)
   public String rateLimited() {
     log.info("Sending");
     return rest.getForObject("http://reservation-service/rate-limited", String.class);

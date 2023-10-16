@@ -1,4 +1,4 @@
-package victor.ms.reservation;
+package victor.training.ms.reservation;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

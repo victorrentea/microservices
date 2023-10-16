@@ -1,4 +1,4 @@
-package victor.ms.reservation;
+package victor.training.ms.reservation;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

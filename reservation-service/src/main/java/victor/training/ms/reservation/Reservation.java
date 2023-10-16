@@ -1,4 +1,4 @@
-package victor.ms.reservation;
+package victor.training.ms.reservation;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;

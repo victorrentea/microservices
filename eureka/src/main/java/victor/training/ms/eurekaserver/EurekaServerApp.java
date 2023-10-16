@@ -1,4 +1,4 @@
-package victor.ms.eurekaserver;
+package victor.training.ms.eurekaserver;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

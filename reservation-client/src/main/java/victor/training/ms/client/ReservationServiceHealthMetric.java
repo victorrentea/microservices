@@ -1,4 +1,4 @@
-package victor.ms.client;
+package victor.training.ms.client;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,10 +24,11 @@ public class ReservationServiceHealthMetric implements HealthIndicator {
       if (responseMap.get("status").equals("UP")) {
         return Health.up().build();
       }
+      return Health.down().build();
     } catch (RestClientException e) {
       log.error("Health check failed :  " + e);
+      return Health.down(e).build();
     }
-    return Health.down().build();
   }
 }
 
