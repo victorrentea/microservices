@@ -1,0 +1,14 @@
+
+# Create new order
+curl -X POST http://localhost:8088/order -H 'accept: */*' -H 'Content-Type: application/json' -d '{"customerId": "margareta","items": [{"productId": 1,"count": 1}],"shippingAddress": "shipping address"}'
+
+# Confirm payment
+curl -X PUT -H 'Content-Type: application/json' --data-raw true  http://localhost:8085/payment/2/status
+
+# Confirm payment
+curl -X PUT -H 'Content-Type: application/json' --data-raw true  http://localhost:8086/shipping/2/status
+
+
+#
+
+Note to go through API Gateway, remove ports from above

@@ -1,0 +1,13 @@
+server.port: 8088
+spring.application.name: order
+
+spring.cloud.function.definition: onPaymentResultEvent;onShippingResultEvent
+spring.cloud.stream.bindings:
+  onPaymentResultEvent-in-0:
+    destination: PaymentResultEvent
+    group: ${spring.application.name}
+  onShippingResultEvent-in-0:
+    destination: ShippingResultEvent
+    group: ${spring.application.name}
+  OrderStatusChangedEvent-out:
+    destination: OrderStatusChangedEvent

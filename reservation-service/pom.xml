@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>victor.training.microservices</groupId>
-        <artifactId>microservices.parent</artifactId>
+        <artifactId>microservices</artifactId>
         <version>1.0</version>
     </parent>
     <artifactId>reservation-service</artifactId>

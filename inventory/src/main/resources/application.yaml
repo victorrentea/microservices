@@ -1,0 +1,8 @@
+server.port: 8083
+spring.application.name: inventory
+
+spring.cloud.function.definition: onOrderStatusChangedEvent
+spring.cloud.stream.bindings:
+  onOrderStatusChangedEvent-in-0:
+    destination: OrderStatusChangedEvent
+    group: ${spring.application.name}

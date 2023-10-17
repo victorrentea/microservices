@@ -1,0 +1,9 @@
+server.port: 8086
+spring.application.name: shipping
+spring.cloud.openfeign.client.config:
+  shipping-provider:
+    url: http://localhost:9999
+
+spring.cloud.stream.bindings:
+  ShippingResultEvent-out:
+    destination: ShippingResultEvent

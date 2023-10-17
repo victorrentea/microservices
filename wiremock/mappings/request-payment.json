@@ -1,0 +1,11 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPathPattern": "/get-payment-link.*"
+  },
+  "response": {
+    "status": 200,
+    "body": "https://payment-link",
+    "fixedDelayMilliseconds": 20
+  }
+}

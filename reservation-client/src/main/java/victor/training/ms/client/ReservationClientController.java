@@ -47,7 +47,7 @@ public class ReservationClientController {
         });
 
     return entity.getBody().stream()
-        .map(ReservationDto::getReservationName)
+        .map(ReservationDto::reservationName)
         .collect(toList());
   }
 
@@ -109,7 +109,7 @@ public class ReservationClientController {
 
   @PostMapping("reservation")
   public void createReservation(@RequestBody ReservationDto reservation) {
-    streamBridge.send("createReservation", reservation.getReservationName());
+    streamBridge.send("createReservation", reservation.reservationName());
     log.info("Message Sent");
   }
 }
