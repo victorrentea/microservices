@@ -33,12 +33,23 @@
 
 	<dependencies>
 		<dependency>
+			<!-- propagate TraceID between microservices -->
+			<groupId>io.micrometer</groupId>
+			<artifactId>micrometer-tracing</artifactId>
+		</dependency>
+		<dependency>
+			<!-- propagate TraceID between microservices -->
 			<groupId>io.micrometer</groupId>
 			<artifactId>micrometer-tracing-bridge-brave</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+		<dependency>
+			<!-- export Micrometer metrics at http://localhost:<port>/actuator/prometheus -->
+			<groupId>io.micrometer</groupId>
+			<artifactId>micrometer-registry-prometheus</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.projectlombok</groupId>

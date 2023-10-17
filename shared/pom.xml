@@ -34,10 +34,18 @@
 			<scope>runtime</scope>
 		</dependency>
 		<dependency>
+			<!-- @FeignClient -->
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-openfeign</artifactId>
 		</dependency>
 		<dependency>
+			<!-- propagate TraceID over @FeignClient -->
+			<groupId>io.github.openfeign</groupId>
+			<artifactId>feign-micrometer</artifactId>
+		</dependency>
+
+		<dependency>
+			<!-- http://localhost:<port>/swagger-ui.html -->
 			<groupId>org.springdoc</groupId>
 			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
 			<version>2.2.0</version>
