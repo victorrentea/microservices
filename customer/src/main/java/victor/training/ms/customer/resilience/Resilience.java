@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 @RequiredArgsConstructor
 @RestController
-public class Client {
+public class Resilience {
   private final ServerClient server;
 
   @GetMapping("retry")

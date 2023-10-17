@@ -87,16 +87,7 @@ public class RetryTest {
 
     assertThat(response.getStatusCode().value()).isEqualTo(testData.expectedStatus);
   }
-  @ParameterizedTest(name = "{0}")
-  @MethodSource("retryTestData")
-  void rateLimited(TestData testData) {
-    setupWiremock(testData);
-
-    ResponseEntity<String> response = testRestTemplate.getForEntity("/retry", String.class);
-
-    assertThat(response.getStatusCode().value()).isEqualTo(testData.expectedStatus);
-  }
-
+  
   private void setupWiremock(TestData testData) {
     reset();
     String lastScenarioState = Scenario.STARTED;
