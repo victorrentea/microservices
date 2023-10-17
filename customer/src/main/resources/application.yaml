@@ -1,2 +1,29 @@
 server.port: 8082
 spring.application.name: customer
+
+resilience4j:
+  retry:
+    instances:
+      retry:
+        max-attempts: 3
+  ratelimiter:
+    instances:
+      rate:
+        limit-for-period: 5
+        limit-refresh-period: 1s
+        timeout-duration: 1ms
+  bulkhead:
+    instances:
+      bulkhead:
+        max-concurrent-calls: 2
+        max-wait-duration: 100ms
+
+
+spring:
+  cloud:
+    openfeign:
+      client:
+        config:
+          server:
+            connect-timeout: 300
+            read-timeout: 300

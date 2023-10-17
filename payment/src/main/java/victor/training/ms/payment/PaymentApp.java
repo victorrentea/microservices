@@ -24,7 +24,7 @@ public class PaymentApp {
 
   @PostMapping("payment")
   public String generatePaymentUrl(@RequestParam Long orderId, @RequestParam @NotNull Double total) {
-    log.info("Request payment url for orderid: " + orderId);
+    log.info("Request payment url for orderid: {}, total: {}", orderId, total);
     return paymentGatewayClient.generatePaymentLink("order/" + orderId + "/payment-accepted", total, "modulith-app");
   }
 

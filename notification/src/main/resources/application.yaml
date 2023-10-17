@@ -6,3 +6,4 @@ spring.cloud.stream.bindings:
   onOrderStatusChanged-in-0:
       destination: OrderStatusChangedEvent
       group: ${spring.application.name}
+
