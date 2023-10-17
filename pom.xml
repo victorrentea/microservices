@@ -29,8 +29,6 @@
 			   <module>order</module>
        <module>payment</module>
        <module>shipping</module>
-		<module>reservation-service</module>
-		<module>reservation-client</module>
 	</modules>
 
 	<dependencies>
