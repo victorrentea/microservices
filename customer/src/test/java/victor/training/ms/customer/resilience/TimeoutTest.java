@@ -23,7 +23,8 @@ public class TimeoutTest {
   @ParameterizedTest
   @ValueSource(ints = {50,100,150,200,250,280,290,295,299,300,310,350,400})
   void timeout(int serverDelay) throws InterruptedException {
-    stubFor(get("/server/call").willReturn(ok("ok").withFixedDelay(serverDelay)));
+    stubFor(get("/server/call").willReturn(ok("ok")
+        .withFixedDelay(serverDelay)));
 
     HttpStatusCode code = rest.getForEntity("/timeout", String.class).getStatusCode();
     assertThat(code.is2xxSuccessful()).isTrue();
