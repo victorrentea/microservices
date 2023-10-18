@@ -6,17 +6,7 @@ resilience4j:
     instances:
       retry:
         max-attempts: 3
-  ratelimiter:
-    instances:
-      rate:
-        limit-for-period: 5
-        limit-refresh-period: 1s
-        timeout-duration: 1ms
-  bulkhead:
-    instances:
-      bulkhead:
-        max-concurrent-calls: 2
-        max-wait-duration: 100ms
+        wait-duration: 500ms
 
 
 spring:
