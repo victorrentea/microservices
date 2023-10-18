@@ -16,6 +16,7 @@ import java.util.Map;
 
 @SpringBootApplication
 @EnableFeignClients
+//@EnableDiscoveryClient // needed if using RestTemplate
 @RequiredArgsConstructor
 public class OrderApp {
   private final OrderRepo orderRepo;

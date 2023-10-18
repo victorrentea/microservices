@@ -22,7 +22,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @AutoConfigureWireMock(port = 0)
 public class BulkheadTest {
   @Autowired
-  private TestRestTemplate testRestTemplate;
+  private TestRestTemplate rest;
 
   @Test
   void call_then_sleep() throws InterruptedException {
@@ -31,7 +31,7 @@ public class BulkheadTest {
     try (ExecutorService pool = Executors.newCachedThreadPool()) {
       IntStream.range(0, 4).forEach(i -> pool.submit(() -> {
         log.info("Call #" + i);
-        HttpStatusCode code = testRestTemplate.getForEntity("/bulkhead", String.class).getStatusCode();
+        HttpStatusCode code = rest.getForEntity("/bulkhead", String.class).getStatusCode();
         assertThat(code.is2xxSuccessful()).isTrue();
         log.info("Call #" + i + " COMPLETED OK");
       }));

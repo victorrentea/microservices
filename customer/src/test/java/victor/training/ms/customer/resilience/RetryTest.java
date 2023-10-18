@@ -23,7 +23,7 @@ import static victor.training.ms.customer.resilience.RetryTest.StubResponse.*;
 @AutoConfigureWireMock(port = 0)
 public class RetryTest {
   @Autowired
-  private TestRestTemplate testRestTemplate;
+  private TestRestTemplate rest;
 
 
   public static Stream<TestData> retryTestData() {
@@ -83,7 +83,7 @@ public class RetryTest {
   void retry(TestData testData) {
     setupWiremock(testData);
 
-    ResponseEntity<String> response = testRestTemplate.getForEntity("/retry", String.class);
+    ResponseEntity<String> response = rest.getForEntity("/retry", String.class);
 
     assertThat(response.getStatusCode().value()).isEqualTo(testData.expectedStatus);
   }

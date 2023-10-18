@@ -14,10 +14,15 @@ import org.springframework.web.bind.annotation.RestController;
 public class Resilience {
   private final ServerClient server;
 
+  @GetMapping("timeout")
+  public String timeout() {
+    return server.call();
+  }
+
   @GetMapping("retry")
   @Retry(name = "retry")
   public String retry() {
-    return server.call();
+    return server.call(); // RPC call: gRPC, REST, SOAP/xml, RMI, CORBA, drivere pt semafoare
   }
 
   @GetMapping("rate")

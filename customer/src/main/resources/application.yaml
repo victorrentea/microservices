@@ -25,5 +25,7 @@ spring:
       client:
         config:
           server:
+            # wait for server to accept your TCPIP connection
             connect-timeout: 300
+            # wait for server to process your request si tu sa primesti raspunsul inapio
             read-timeout: 300
