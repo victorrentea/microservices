@@ -1,0 +1,28 @@
+server.port: 8082
+spring.application.name: customer
+
+resilience4j:
+  bulkhead:
+    instances:
+      query-gras:
+        max-concurrent-calls: 2
+  retry:
+    instances:
+      hard:
+        max-attempts: 1
+        wait-duration: 0ms
+        retry-exceptions:
+          - feign.FeignException.ServiceUnavailable
+    retry-aspect-order: 1
+  circuitbreaker:
+    circuit-breaker-aspect-order: 2
+    instances:
+      hard:
+        sliding-window-size: 3
+        sliding-window-type: count_based
+        failure-rate-threshold: 50
+
+        wait-duration-in-open-state: 1s
+
+        permitted-number-of-calls-in-half-open-state: 1
+

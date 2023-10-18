@@ -2,12 +2,29 @@ server.port: 8082
 spring.application.name: customer
 
 resilience4j:
+  bulkhead:
+    instances:
+      query-gras:
+        max-concurrent-calls: 2
   retry:
     instances:
       retry:
         max-attempts: 3
         wait-duration: 500ms
+        retry-exceptions:
+          - feign.FeignException.ServiceUnavailable
+    retry-aspect-order: 2
+  circuitbreaker:
+    circuit-breaker-aspect-order: 1
+    instances:
+      circuit:
+        sliding-window-size: 10
+        sliding-window-type: time_based
+        failure-rate-threshold: 99
 
+        wait-duration-in-open-state: 3s
+
+        permitted-number-of-calls-in-half-open-state: 10
 
 spring:
   cloud:

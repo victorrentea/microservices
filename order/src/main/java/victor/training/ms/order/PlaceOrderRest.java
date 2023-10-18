@@ -23,8 +23,8 @@ import static java.util.stream.Collectors.toMap;
 public class PlaceOrderRest {
   private final OrderRepo orderRepo;
   private final CatalogClient catalogClient;
-  private final PaymentModule paymentModule;
-  private final InventoryDoor inventoryDoor;
+  private final PaymentClient paymentClient;
+  private final InventoryClient inventoryClient;
   private final ShippingModule shippingDoor;
 
   public record PlaceOrderRequest(
@@ -49,8 +49,8 @@ public class PlaceOrderRest {
         .customerId(request.customerId)
         .total(totalPrice);
     orderRepo.save(order);
-    inventoryDoor.reserveStock(order.id(), request.items);
-    return paymentModule.generatePaymentUrl(order.id(), order.total()) + "&orderId=" + order.id();
+    inventoryClient.reserveStock(order.id(), request.items);
+    return paymentClient.generatePaymentUrl(order.id(), order.total()) + "&orderId=" + order.id();
   }
 
   @Bean

@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.util.List;
 
 @FeignClient("inventory")
-public interface InventoryDoor {
+public interface InventoryClient {
    @PostMapping("inventory/stock/reserve")
    void reserveStock(@RequestParam long orderId, @RequestBody List<LineItem> items);
 }

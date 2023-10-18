@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @FeignClient("payment")
-public interface PaymentModule {
+public interface PaymentClient {
   @PostMapping("payment")
   String generatePaymentUrl(@RequestParam Long orderId, @RequestParam @NotNull Double total);
 }

@@ -31,12 +31,20 @@ public class NotificationApp {
     return event -> {
       CustomerDto customer = customerClient.getCustomer(event.customerId());
       if (event.status() == OrderStatus.PAYMENT_APPROVED) {
-        log.info("Sending 📧 'Order {} Confirmed' email to {}", event.orderId(), customer.email());
+
+        String body = "Sending 📧 'Order %s Confirmed' email to %s".formatted(event.orderId(), customer.email());
+        sendEmail(body);
       }
       if (event.status() == OrderStatus.SHIPPING_IN_PROGRESS) {
-        log.info("Sending 📧 'Order {} Shipped' email to {}", event.orderId(), customer.email());
+        String body = "Sending 📧 'Order %s Shipped' email to %s".formatted(event.orderId(), customer.email());
+        sendEmail(body);
       }
     };
+  }
+
+//  @RateLimited() // max 10/s
+  private void sendEmail(String body) {
+    log.info(body);
   }
 
 }

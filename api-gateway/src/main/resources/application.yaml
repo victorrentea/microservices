@@ -1,15 +1,22 @@
 spring.application.name: gateway
 server.port: 80
+
 spring:
   cloud:
     gateway:
       routes:
         - id: customer
-          uri: http://localhost:8082
+          uri: lb://customer
           predicates:
             - Path=/customer/**
-
+          #aici poti sa pui
+#          filters:
+#            - name: Bulkhead
+#              args:
+#                name: query-gras
+#                fallbackUri: forward:/fallback
         - id: catalog
+          # sends round robin requests to all instances of catalog from eureka
           uri: lb://catalog
           predicates:
             - Path=/catalog/**
