@@ -4,6 +4,7 @@ spring.application.name: payment
 spring.cloud.openfeign.client.config:
   payment-gateway:
     url: http://localhost:9999
+
 spring.cloud.stream.bindings:
   PaymentResultEvent-out:
     destination: PaymentResultEvent

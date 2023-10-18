@@ -33,7 +33,7 @@
 
     <dependencies>
         <dependency>
-            <!-- propagate TraceID between microservices -->
+            <!-- propagate TraceID between microservices in Spring Boot 3 -->
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-tracing</artifactId>
         </dependency>

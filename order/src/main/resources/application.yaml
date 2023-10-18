@@ -1,5 +1,8 @@
 server.port: 8088
+
+#app name is registers in Eureka and used by other ms when calling you
 spring.application.name: order
+
 
 spring.cloud.function.definition: onPaymentResultEvent;onShippingResultEvent
 spring.cloud.stream.bindings:

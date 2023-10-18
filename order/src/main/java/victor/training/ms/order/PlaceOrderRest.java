@@ -22,7 +22,7 @@ import static java.util.stream.Collectors.toMap;
 @RequiredArgsConstructor
 public class PlaceOrderRest {
   private final OrderRepo orderRepo;
-  private final CatalogDoor catalogDoor;
+  private final CatalogClient catalogClient;
   private final PaymentModule paymentModule;
   private final InventoryDoor inventoryDoor;
   private final ShippingModule shippingDoor;
@@ -36,10 +36,11 @@ public class PlaceOrderRest {
   @PostMapping("order")
   public String placeOrder(@RequestBody PlaceOrderRequest request) {
     List<Long> productIds = request.items().stream().map(LineItem::productId).toList();
-    Map<Long, Double> prices = catalogDoor.getManyPrices(productIds);
+    Map<Long, Double> prices = catalogClient.getManyPrices(productIds);
     if (!prices.keySet().containsAll(productIds)) {
       throw new IllegalArgumentException("Some product ids not found! requested:"+productIds + " found:"+prices.keySet());
     }
+    log.info("Got prices: {}", prices);
     Map<Long, Integer> items = request.items.stream().collect(toMap(LineItem::productId, LineItem::count));
     double totalPrice = request.items.stream().mapToDouble(e -> e.count() * prices.get(e.productId())).sum();
     Order order = new Order()
