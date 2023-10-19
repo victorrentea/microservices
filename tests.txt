@@ -13,7 +13,7 @@ curl -X PUT -H 'Content-Type: application/json' --data-raw true  http://localhos
 curl -X PUT -H 'Content-Type: application/json' --data-raw true  http://localhost:8086/shipping/2/status
 curl -X PUT -H 'Content-Type: application/json' --data-raw true  http://localhost/shipping/2/status
 
-
+curl -X GET http://localhost/order/2
 #
 
 Note to go through API Gateway, remove ports from above

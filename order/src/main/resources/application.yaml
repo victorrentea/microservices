@@ -14,3 +14,5 @@ spring.cloud.stream.bindings:
     group: ${spring.application.name}
   OrderStatusChangedEvent-out:
     destination: OrderStatusChangedEvent
+  requestTrackingNumber-out:
+    destination: RequestShipping

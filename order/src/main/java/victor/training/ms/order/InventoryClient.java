@@ -2,6 +2,7 @@ package victor.training.ms.order;
 
 
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;

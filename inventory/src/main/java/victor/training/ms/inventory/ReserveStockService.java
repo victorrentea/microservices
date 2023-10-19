@@ -20,6 +20,9 @@ public class ReserveStockService {
 
   @Transactional
   public void reserveStock(long orderId, List<LineItem> items) {
+    if (stockReservationRepo.existsByOrderId(orderId)) { // idempotent operation now
+      throw new IllegalStateException("Already reserved: " + orderId);
+    }
     for (var item : items) {
       subtractStock(item.productId(), item.count());
       createReservation(orderId, item.productId(), item.count());

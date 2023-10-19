@@ -9,6 +9,6 @@
       "Content-Type": "text/plain"
     },
     "body": "trackingNumber",
-    "fixedDelayMilliseconds": 40
+    "fixedDelayMilliseconds": 4000
   }
 }
