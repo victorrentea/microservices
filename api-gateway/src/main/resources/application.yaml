@@ -9,14 +9,8 @@ spring:
           uri: lb://customer
           predicates:
             - Path=/customer/**
-          #aici poti sa pui
-#          filters:
-#            - name: Bulkhead
-#              args:
-#                name: query-gras
-#                fallbackUri: forward:/fallback
         - id: catalog
-          # sends round robin requests to all instances of catalog from eureka
+          # lb:// = Load Balancing = send round-robin requests to all instances of catalog registered with Eureka
           uri: lb://catalog
           predicates:
             - Path=/catalog/**
@@ -32,3 +26,4 @@ spring:
           uri: lb://order
           predicates:
             - Path=/order/**
+

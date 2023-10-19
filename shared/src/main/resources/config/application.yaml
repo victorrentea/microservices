@@ -1,0 +1,31 @@
+# changing a property here ripples in all microservices (except api-gateway and eureka)
+# emulating a k8s config source, as a simpler alternative to config-server, for local demos
+
+# /actuator
+management:
+  endpoints.web.exposure.include: "*"
+  endpoint:
+    health.show-details: always
+    prometheus.enabled: true
+  #displays more on /actuator/info
+  info:
+    java.enabled: true
+    env.enabled: true
+    app:
+      swagger: /swagger-ui.html
+
+#logging:
+#  pattern.level= %5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]
+logging.level:
+  victor: DEBUG
+  hibernate.SQL: DEBUG
+
+#@FeignClient logs request/response URL/status
+spring.cloud.openfeign.client.config:
+  default:
+    logger-level: basic
+
+# each ms downloads the eureka contents every 3 sec
+eureka:
+  client:
+    registry-fetch-interval-seconds: 3
