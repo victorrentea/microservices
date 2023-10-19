@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 @Slf4j
 @SpringBootApplication
@@ -31,14 +32,20 @@ public class ShippingApp {
   }
 
   // functional-style spring message endpoint
-  @Bean
-  public Consumer<String> requestShipmentListener() {
-    return customerAddress -> {
-      log.info("Request shipping via q at " + customerAddress);
-      String trackingNumber = shippingProviderClient.requestShipment("our-warehouse", customerAddress);
+  @Bean/// un reply-message s-ar chema TrackingNumberReply
+  public Function<RequestShipment, ShippingAcceptedEvent> requestShipmentListener() {
+    return event -> {
+      log.info("Request shipping via q at " + event.customerAddress());
+      String trackingNumber = shippingProviderClient.requestShipment(
+          "our-warehouse", event.customerAddress());
       System.out.println("Got tracking number: " + trackingNumber);
+      return new ShippingAcceptedEvent(event.orderId(), trackingNumber);
     };
   }
-  
+
+  record RequestShipment(long orderId, String customerAddress) {}
+
+  record ShippingAcceptedEvent(long orderId, String trackingNumber) {}
+
 
 }

@@ -11,3 +11,7 @@ spring.cloud.stream.bindings:
   requestShipmentListener-in-0:
     destination: RequestShipping
     group: ${spring.application.name}
+    consumer:
+      concurrency: 2
+  requestShipmentListener-out-0:
+    destination: ShippingAcceptedEvent

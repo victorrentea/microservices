@@ -4,7 +4,7 @@ server.port: 8088
 spring.application.name: order
 
 
-spring.cloud.function.definition: onPaymentResultEvent;onShippingResultEvent
+spring.cloud.function.definition: onPaymentResultEvent;onShippingResultEvent;onShippingAcceptedEvent
 spring.cloud.stream.bindings:
   onPaymentResultEvent-in-0:
     destination: PaymentResultEvent
@@ -16,3 +16,6 @@ spring.cloud.stream.bindings:
     destination: OrderStatusChangedEvent
   requestTrackingNumber-out:
     destination: RequestShipping
+  onShippingAcceptedEvent-in-0:
+    destination: ShippingAcceptedEvent
+    group: ${spring.application.name}

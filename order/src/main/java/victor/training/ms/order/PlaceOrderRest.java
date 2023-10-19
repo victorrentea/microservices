@@ -76,16 +76,24 @@ private final StreamBridge streamBridge;
       Order order = orderRepo.findById(event.orderId()).orElseThrow();
       order.paid(event.ok());
       if (order.status() == OrderStatus.PAYMENT_APPROVED) {
-        String trackingNumber = shippingDoor.requestShipment(order.shippingAddress());
-
-        streamBridge.send("requestTrackingNumber-out", order.shippingAddress());
-
-        order.scheduleForShipping(trackingNumber);
+        record RequestShipment(long orderId, String customerAddress) {}
+        RequestShipment command = new RequestShipment(event.orderId(), order.shippingAddress());
+        streamBridge.send("requestTrackingNumber-out", command);
       }
       orderRepo.save(order);
     };
   }
 
+  record ShippingAcceptedEvent(long orderId, String trackingNumber) {}
+  @Bean
+  public Consumer<ShippingAcceptedEvent> onShippingAcceptedEvent() {
+    return event -> {
+      log.info("Got tracking number: " + event.trackingNumber());
+      Order order = orderRepo.findById(event.orderId()).orElseThrow();
+      order.scheduleForShipping(event.trackingNumber());
+      orderRepo.save(order);
+    };
+  }
   @Bean
   public Consumer<ShippingResultEvent> onShippingResultEvent() {
     return event -> {
