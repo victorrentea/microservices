@@ -5,8 +5,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.event.EventListener;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -16,7 +14,6 @@ import victor.training.ms.shared.ShippingResultEvent;
 
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 import static java.util.stream.Collectors.toMap;
@@ -42,7 +39,7 @@ public class PlaceOrderRest {
     List<Long> productIds = request.items().stream().map(LineItem::productId).toList();
     Map<Long, Double> prices = catalogClient.getManyPrices(productIds);
     if (!prices.keySet().containsAll(productIds)) {
-      throw new IllegalArgumentException("Some product ids not found! requested:"+productIds + " found:"+prices.keySet());
+      throw new IllegalArgumentException("Some product ids not found! requested:" + productIds + " found:" + prices.keySet());
     }
     log.info("Got prices: {}", prices);
     Map<Long, Integer> items = request.items.stream().collect(toMap(LineItem::productId, LineItem::count));
@@ -54,7 +51,9 @@ public class PlaceOrderRest {
         .total(totalPrice);
     orderRepo.save(order);
 
+    // reservation
     inventoryClient.reserveStock(order.id(), request.items); //10ms - 1s - 5s: astepti cu 1/200 de th tomcat
+
     // cu 1MB de RAM (thread stack) blocat
     // cu 1 thread blocat din cele 200 default ale Tomcatului
     // din java 21 in sus, tocmat poate sa aiba 500k de threaduri, fiecare punct in care blochezi tine doar 200b~ ocupati
@@ -67,7 +66,7 @@ public class PlaceOrderRest {
   }
 
 
-private final StreamBridge streamBridge;
+  private final StreamBridge streamBridge;
 
   @Bean
   public Consumer<PaymentResultEvent> onPaymentResultEvent() {
@@ -76,24 +75,40 @@ private final StreamBridge streamBridge;
       Order order = orderRepo.findById(event.orderId()).orElseThrow();
       order.paid(event.ok());
       if (order.status() == OrderStatus.PAYMENT_APPROVED) {
-        record RequestShipment(long orderId, String customerAddress) {}
+        record RequestShipment(long orderId, String customerAddress) {
+        }
         RequestShipment command = new RequestShipment(event.orderId(), order.shippingAddress());
         streamBridge.send("requestTrackingNumber-out", command);
+        // la aceasta linie, a plecat mesaj pe Rabbit catre shipping
       }
-      orderRepo.save(order);
+      orderRepo.save(order); // <-- daca aici COMMITul nu reuseste (PK, UK, FK violation, NOT NULL)
     };
   }
 
-  record ShippingAcceptedEvent(long orderId, String trackingNumber) {}
+  record ShippingAcceptedEvent(long orderId, String trackingNumber) {
+  }
+
   @Bean
   public Consumer<ShippingAcceptedEvent> onShippingAcceptedEvent() {
     return event -> {
-      log.info("Got tracking number: " + event.trackingNumber());
       Order order = orderRepo.findById(event.orderId()).orElseThrow();
-      order.scheduleForShipping(event.trackingNumber());
-      orderRepo.save(order);
+      if (event.trackingNumber() != null) {
+        log.info("Got tracking number: " + event.trackingNumber());
+        order.scheduleForShipping(event.trackingNumber());
+        orderRepo.save(order);
+      } else {
+        log.warn("Shipping Rejected!");
+        // incearca alt curier, dar nu aici pt ca e respo serviciului de Shipping
+
+        // compensare
+//        streamBridge.send("revertPayment-out", order.id()); // TODO tema undo payment
+//        inventoryClient.releaseStock(order.id());// TODO tema pt extra eficienta ?
+        order.shippingRejected();
+        orderRepo.save(order);
+      }
     };
   }
+
   @Bean
   public Consumer<ShippingResultEvent> onShippingResultEvent() {
     return event -> {

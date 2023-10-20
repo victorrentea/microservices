@@ -36,10 +36,15 @@ public class ShippingApp {
   public Function<RequestShipment, ShippingAcceptedEvent> requestShipmentListener() {
     return event -> {
       log.info("Request shipping via q at " + event.customerAddress());
-      String trackingNumber = shippingProviderClient.requestShipment(
-          "our-warehouse", event.customerAddress());
-      System.out.println("Got tracking number: " + trackingNumber);
-      return new ShippingAcceptedEvent(event.orderId(), trackingNumber);
+      try {
+        String trackingNumber = shippingProviderClient.requestShipment(
+            "our-warehouse", event.customerAddress());
+        System.out.println("Got tracking number: " + trackingNumber);
+        return new ShippingAcceptedEvent(event.orderId(), trackingNumber);
+      } catch (Exception e) {
+        log.error("Shipping failed: " + e, e);
+        return new ShippingAcceptedEvent(event.orderId, null);
+      }
     };
   }
 

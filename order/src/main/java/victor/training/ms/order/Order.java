@@ -72,4 +72,7 @@ public class Order extends AbstractAggregateRoot<Order> {
     return this;
   }
 
+  public void shippingRejected() {
+    status = SHIPPING_REJECTED;
+  }
 }

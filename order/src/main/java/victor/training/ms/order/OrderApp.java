@@ -39,8 +39,11 @@ public class OrderApp {
   }
 
   private final StreamBridge streamBridge;
+
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void onOrderStatusChanged(OrderStatusChangedEvent event) {
+    // this method runs after the successful COMMIT of the @Transactional
+    //   from within which the OrderStatusChangedEvent was published
     streamBridge.send("OrderStatusChangedEvent-out", event);
   }
 }
