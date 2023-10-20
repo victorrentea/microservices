@@ -22,31 +22,39 @@ public class HardTest {
   void retry() throws InterruptedException {
     stubFor(get("/server/call").willReturn(status(503)));
 
-    rest.getForEntity("/hard", String.class);
-    verify(1, getRequestedFor(urlEqualTo("/server/call")));
+    callMyEndpoint();
+    assertExternalApiCalledTimes(1);
 
-    rest.getForEntity("/hard", String.class);
-    verify(2, getRequestedFor(urlEqualTo("/server/call")));
+    callMyEndpoint();
+    assertExternalApiCalledTimes(2);
 
-    rest.getForEntity("/hard", String.class);
-    verify(3, getRequestedFor(urlEqualTo("/server/call")));
+    callMyEndpoint();
+    assertExternalApiCalledTimes(3);
 
     // in OPEN STATE
-    rest.getForEntity("/hard", String.class);
-    verify(3, getRequestedFor(urlEqualTo("/server/call")));
+    callMyEndpoint();
+    assertExternalApiCalledTimes(3);
 
     Thread.sleep(1001);
 
     // in HALF-OPEN STATE
-    rest.getForEntity("/hard", String.class);
-    verify(4, getRequestedFor(urlEqualTo("/server/call")));
+    callMyEndpoint();
+    assertExternalApiCalledTimes(4);
 
     // in CLOSED
-    rest.getForEntity("/hard", String.class);
-    verify(5, getRequestedFor(urlEqualTo("/server/call")));
+    callMyEndpoint();
+    assertExternalApiCalledTimes(5);
 
 //    rest.getForEntity("/hard", String.class);
 //    verify(6, getRequestedFor(urlEqualTo("/server/call")));
+  }
+
+  private void callMyEndpoint() {
+    rest.getForEntity("/hard", String.class);
+  }
+
+  private void assertExternalApiCalledTimes(int count) {
+    verify(count, getRequestedFor(urlEqualTo("/server/call")));
   }
 
 }

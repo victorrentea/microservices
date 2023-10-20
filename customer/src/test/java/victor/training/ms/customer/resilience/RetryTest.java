@@ -25,22 +25,24 @@ public class RetryTest {
   @Autowired
   private TestRestTemplate rest;
 
-
-  public static Stream<TestData> retryTestData() {
+  public static Stream<TestCase> retryTestData() {
     return Stream.of(
-        new TestData(200, new OK()),
-        new TestData(500, new OKDelayed(1000)),
-        new TestData(200, new KO(503), new OK()),
-        new TestData(200, new KO(503), new KO(503), new OK()),
-        new TestData(500, new KO(503)),
-        new TestData(200, new KODelayed(503, 100), new OK()),
-        new TestData(200, new KODelayed(503, 500), new OK())
+        new TestCase(200, 1, new OK()),
+        new TestCase(200, 1, new OKDelayed(200)),
+        new TestCase(200, 1, new OKDelayed(290)),
+        new TestCase(500, 3, new OKDelayed(400)),
+        new TestCase(200, 2, new KO(503), new OK()),
+        new TestCase(200, 3, new KO(503), new KO(503), new OK()),
+        new TestCase(500, 3, new KO(503)),
+        new TestCase(200, 2, new KODelayed(503, 100), new OK()),
+        new TestCase(200, 2, new KODelayed(503, 400), new OK())
     );
   }
 
-  record TestData(int expectedStatus, StubResponse... responses) {
+  record TestCase(int expectedStatus, int expectedApiCalls, StubResponse... responses) {
     public String toString() {
-      return expectedStatus + " <- " + Stream.of(responses).map(Objects::toString).collect(joining(","));
+      String responseStr = Stream.of(responses).map(Objects::toString).collect(joining(", "));
+      return "Returns " + expectedStatus + " after " + expectedApiCalls + " calls to API: " + responseStr + "...";
     }
   }
 
@@ -61,7 +63,7 @@ public class RetryTest {
 
     record OKDelayed(int millis) implements StubResponse {
       public String toString() {
-        return "OK[Δt=" + millis + "ms]";
+        return "OK[after " + millis + "ms]";
       }
     }
 
@@ -73,32 +75,34 @@ public class RetryTest {
 
     record KODelayed(int status, int millis) implements StubResponse {
       public String toString() {
-        return "KO[" + status + ",Δt=" + millis + "ms]";
+        return "KO[" + status + " after " + millis + "ms]";
       }
     }
   }
 
   @ParameterizedTest(name = "{0}")
   @MethodSource("retryTestData")
-  void retry(TestData testData) {
-    setupWiremock(testData);
+  void retryAndTimeout(TestCase testCase) {
+    setupWiremock(testCase.responses);
 
     ResponseEntity<String> response = rest.getForEntity("/retry", String.class);
 
-    assertThat(response.getStatusCode().value()).isEqualTo(testData.expectedStatus);
+    assertThat(response.getStatusCode().value()).isEqualTo(testCase.expectedStatus);
+    verify(testCase.expectedApiCalls, getRequestedFor(urlEqualTo("/server/call")));
   }
   
-  private void setupWiremock(TestData testData) {
+  private void setupWiremock(StubResponse[] responses) {
     reset();
     String lastScenarioState = Scenario.STARTED;
-    for (StubResponse response : testData.responses) {
-      String nextScenario = response == testData.responses[testData.responses.length - 1] ?
+    for (StubResponse response : responses) {
+      String nextScenario = response == responses[responses.length - 1] ?
           lastScenarioState : (lastScenarioState + "x");
 
       stubFor(get("/server/call")
           .inScenario("MY")
           .whenScenarioStateIs(lastScenarioState)
-          .willReturn(status(response.status()).withFixedDelay(response.millis()))
+          .willReturn(status(response.status())
+              .withFixedDelay(response.millis()))
           .willSetStateTo(nextScenario))
       ;
       lastScenarioState = nextScenario;

@@ -13,6 +13,7 @@ resilience4j:
         wait-duration: 500ms
         retry-exceptions:
           - feign.FeignException.ServiceUnavailable
+          - feign.RetryableException #eg Timeout
     retry-aspect-order: 2
   circuitbreaker:
     circuit-breaker-aspect-order: 1
@@ -32,7 +33,7 @@ spring:
       client:
         config:
           server:
-            # wait for server to accept your TCPIP connection
-            connect-timeout: 300
-            # wait for server to process your request si tu sa primesti raspunsul inapio
+            # wait for server to accept your TCP/IP connection
+            connect-timeout: 100
+            # wait for server to repond to your request
             read-timeout: 300
