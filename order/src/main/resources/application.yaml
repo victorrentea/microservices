@@ -19,3 +19,4 @@ spring.cloud.stream.bindings:
   onShippingAcceptedEvent-in-0:
     destination: ShippingAcceptedEvent
     group: ${spring.application.name}
+
