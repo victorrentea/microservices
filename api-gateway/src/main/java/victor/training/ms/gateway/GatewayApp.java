@@ -14,4 +14,15 @@ public class GatewayApp {
     SpringApplication.run(GatewayApp.class, args);
   }
 
+//  @Bean
+//  public RouteLocator customRouteLocator(RouteLocatorBuilder builder,
+//                                         QueryParamPreAuthHeaders preAuthHeaderFakerFilter) {
+//    return builder.routes()
+//        .route("path_route", r -> r.path("/**")
+//            .filters(f -> f
+//                .filters(preAuthHeaderFakerFilter)
+//            )
+//            .uri("http://localhost:8080"))
+//        .build();
+//  }
 }

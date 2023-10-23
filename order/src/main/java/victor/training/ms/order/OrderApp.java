@@ -6,10 +6,12 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.cloud.stream.function.StreamBridge;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.event.EventListener;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
+import org.springframework.web.client.RestTemplate;
 import victor.training.ms.shared.OrderStatusChangedEvent;
 
 import java.util.Map;
@@ -20,6 +22,11 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class OrderApp {
   private final OrderRepo orderRepo;
+
+  @Bean
+  public RestTemplate restTemplate() {
+    return new RestTemplate();
+  }
 
   public static void main(String[] args) {
     SpringApplication.run(OrderApp.class, args);

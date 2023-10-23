@@ -9,6 +9,8 @@ spring:
           uri: lb://customer
           predicates:
             - Path=/customer/**
+#          filters:
+#            - AddRequestHeader=Authorization, Basic dXNlcjp1c2Vy
         - id: catalog
           # lb:// = Load Balancing = send round-robin requests to all instances of catalog registered with Eureka
           uri: lb://catalog
