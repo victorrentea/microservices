@@ -1,10 +1,10 @@
 server.port: 8082
 spring.application.name: customer
 
-resilience4j:
+resilience4j: # must-have in resilient microservice
   bulkhead:
     instances:
-      query-gras:
+      fat-query:
         max-concurrent-calls: 2
   retry:
     instances:

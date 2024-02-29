@@ -1,5 +1,6 @@
 package victor.training.ms.customer;
 
+import io.github.resilience4j.bulkhead.annotation.Bulkhead;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -30,6 +31,7 @@ public class SecurityConfigUserPass  {
     return http.build();
   }
   @Bean
+
   public InMemoryUserDetailsManager userDetailsService() {
     UserDetails user = User.withDefaultPasswordEncoder()
         .username("ag")

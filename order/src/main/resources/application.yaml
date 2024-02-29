@@ -12,6 +12,8 @@ spring.cloud.stream.bindings:
   onShippingResultEvent-in-0:
     destination: ShippingResultEvent
     group: ${spring.application.name}
+#    consumer:
+#      concurrency: 10
   OrderStatusChangedEvent-out:
     destination: OrderStatusChangedEvent
   requestTrackingNumber-out:

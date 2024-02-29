@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import victor.training.ms.order.dto.PlaceOrderRequest;
 import victor.training.ms.shared.OrderStatus;
 import victor.training.ms.shared.PaymentResultEvent;
 import victor.training.ms.shared.ShippingResultEvent;
@@ -28,13 +29,10 @@ public class PlaceOrderRest {
   private final InventoryClient inventoryClient;
   private final ShippingModule shippingDoor;
 
-  public record PlaceOrderRequest(
-      @Schema(example = "margareta") String customerId,
-      List<LineItem> items,
-      String shippingAddress) {
-  }
+
 
   @PostMapping("order")
+
   public String placeOrder(@RequestBody PlaceOrderRequest request) {
     List<Long> productIds = request.items().stream().map(LineItem::productId).toList();
     Map<Long, Double> prices = catalogClient.getManyPrices(productIds);
@@ -42,17 +40,17 @@ public class PlaceOrderRest {
       throw new IllegalArgumentException("Some product ids not found! requested:" + productIds + " found:" + prices.keySet());
     }
     log.info("Got prices: {}", prices);
-    Map<Long, Integer> items = request.items.stream().collect(toMap(LineItem::productId, LineItem::count));
-    double totalPrice = request.items.stream().mapToDouble(e -> e.count() * prices.get(e.productId())).sum();
+    Map<Long, Integer> items = request.items().stream().collect(toMap(LineItem::productId, LineItem::count));
+    double totalPrice = request.items().stream().mapToDouble(e -> e.count() * prices.get(e.productId())).sum();
     Order order = new Order()
         .items(items)
-        .shippingAddress(request.shippingAddress)
-        .customerId(request.customerId)
+        .shippingAddress(request.shippingAddress())
+        .customerId(request.customerId())
         .total(totalPrice);
     orderRepo.save(order);
 
     // reservation
-    inventoryClient.reserveStock(order.id(), request.items); //10ms - 1s - 5s: astepti cu 1/200 de th tomcat
+    inventoryClient.reserveStock(order.id(), request.items()); //10ms - 1s - 5s: astepti cu 1/200 de th tomcat
 
     // cu 1MB de RAM (thread stack) blocat
     // cu 1 thread blocat din cele 200 default ale Tomcatului

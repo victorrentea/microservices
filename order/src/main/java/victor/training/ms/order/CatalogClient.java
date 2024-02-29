@@ -10,6 +10,7 @@ import java.util.Map;
 @FeignClient("catalog")
 public interface CatalogClient {
   @GetMapping("catalog/prices/many")
+//  @RateLimiter("rate")
   Map<Long, Double> getManyPrices(@RequestParam Collection<Long> ids);
 }
 

@@ -2,6 +2,13 @@ server.port: 8082
 spring.application.name: customer
 
 resilience4j:
+  ratelimiter:
+    instances:
+      rate:
+        limit-for-period: 10 # no calls
+        limit-refresh-period: 1m # .. per unit of time
+        timeout-duration: 1m # how much to allow calls to wait in line arunca exceptie dupa
+
   bulkhead:
     instances:
       query-gras:
