@@ -21,4 +21,12 @@ spring.cloud.stream.bindings:
   onShippingAcceptedEvent-in-0:
     destination: ShippingAcceptedEvent
     group: ${spring.application.name}
+spring:
+  cloud:
+    openfeign:
+      client:
+        config:
+          catalog:
+            connectTimeout: 10000
+            readTimeout: 10000
 

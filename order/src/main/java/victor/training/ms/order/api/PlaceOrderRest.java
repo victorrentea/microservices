@@ -44,16 +44,11 @@ public class PlaceOrderRest {
 
   @PostMapping("order")
   public String placeOrder(@RequestBody PlaceOrderRequest request) {
-    Map<Long, Double> prices = new HashMap<>();
-    for (LineItem item : request.items()) {
-      double price = catalogClient.getPrice(item.productId());  // TODO FIXME: network calls in a loop
-      prices.put(item.productId(), price);
+    List<Long> productIds = request.items().stream().map(LineItem::productId).toList();
+    Map<Long, Double> prices = catalogClient.getManyPrices(productIds); // batching
+    if (prices.size() != productIds.size()) {
+      throw new IllegalArgumentException("Not all products have a price");
     }
-//    List<Long> productIds = request.items().stream().map(LineItem::productId).toList();
-//    Map<Long, Double> prices = catalogClient.getManyPrices(productIds);
-//    if (!prices.keySet().containsAll(productIds)) {
-//      throw new IllegalArgumentException("Some product ids not found! requested:" + productIds + " found:" + prices.keySet());
-//    }
 
     log.info("Got prices: {}", prices);
     Map<Long, Integer> items = request.items().stream().collect(toMap(LineItem::productId, LineItem::count));
