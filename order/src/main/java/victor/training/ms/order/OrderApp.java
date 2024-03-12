@@ -56,8 +56,37 @@ public class OrderApp {
   public void onOrderStatusChanged(OrderStatusChangedEvent event) {
     // this method runs after the successful COMMIT of the @Transactional
     //   from within which the OrderStatusChangedEvent was published
+
+    // #1 Notification
     streamBridge.send("OrderStatusChangedEvent-out", event);
+//    streamBridge.send("OrderStatusChangedEvent-out", new OrderStatusChanged2Event(order.id));
+
+    // #2 Event-Carried State Transfer [@mfowler] => burn the REST!!!
+//    streamBridge.send("OrderStatusChangedEvent-out", new OrderStatusChanged2EventV1(order));
+    // + nu mai facem fetch inapoi la sursa dupa date
+    // - datele ACUM in sistemul sursa pot fi deja altele ± => si ce daca? chiar daca sun 'in urma cu procesarea',
+    //    probabil voi primi mesaje ulterioare care reflecta schimbarea din sistemul sursa,
+    //    pe care le voi procesa cu latenta de rigoare. => Eventually consistent la un moment dat
+    // - size of the event is bigger;
+    // - eventul incepa sa aiba nevoie de schema, exact ca un DTO json response. = JSON Schema sau AVRO
   }
+  // !! Atentie: TOATE microserviciile din jurul event streamului importau un events-v43.jar ce continea toate
+  // definitiile tuturor evenimentelor de pe Kafka ca clase Java
+  // + nu generezi cod, ci doar importi un jar
+  // - upgrade constant
+
+  // alternativa:
+  // a) JSON Schema publicate undeva din care fiecare app sa-si genereze clasele asoc eventurilor
+  // b) AVRO Schema (pentru peformanta mare) -> generezi clase Java din schema
+  // c) cate-un jar pentru fiecare event
+
+  // Versionarea eventurilor e mult mai grea decat versionarea DTO-urilor dintr-un REST
+  // pt ca eventurile pot ramane mult timp pe topice, in istorie, DLQ/T
+  // daca vrei sa replay history (resetezi consumer offsets=0 si revizitezi toate eventurile)
+
+  // de aceea procesatoarele de eventuri trebuie sa fie si
+  // > backwards-compatible: sa poata procesa un event v-1 -> if (!=null)...
+  // > forwards-compatible: sa poata procesa un event v+1 (campuri noi)
 
   @RestControllerAdvice
   @Slf4j
