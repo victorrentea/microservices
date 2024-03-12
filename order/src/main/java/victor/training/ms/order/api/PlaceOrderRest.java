@@ -71,8 +71,6 @@ public class PlaceOrderRest {
 
   private final StreamBridge streamBridge;
 
-//  @RabbitListener
-//  @ServiceActivator
   @Bean
   public Consumer<PaymentResultEvent> onPaymentResultEvent() {
     return event -> {

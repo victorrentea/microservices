@@ -6,10 +6,11 @@ printf "\n---- Enter new orderId:"
 read orderId
 
 #sleep 1 # mq
-echo "\n---- Confirm payment"
+echo "\n---- Confirm payment from Gateway"
 curl -X PUT -H 'Content-Type: application/json' --data-raw true  http://localhost/payment/$orderId/status
 
 sleep 1 # mq
+#sleep 6 # if increasing the delay, I will get to see the change in the order status (moving over queues)
 echo "\n---- Get order"
 curl -X GET http://localhost/order/$orderId
 
@@ -18,6 +19,10 @@ curl -X PUT -H 'Content-Type: application/json' --data-raw true  http://localhos
 
 sleep 1 # mq
 echo "\n---- Get order"
+curl -X GET http://localhost/order/$orderId
+
+sleep 3 # mq
+echo "\n---- Get order (bis)"
 curl -X GET http://localhost/order/$orderId
 
 echo "\nDONE"
