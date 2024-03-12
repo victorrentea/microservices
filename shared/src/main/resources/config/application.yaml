@@ -13,8 +13,10 @@ management:
     env.enabled: true
     app.swagger: /swagger-ui.html
 
-#logging:
-#  pattern.level= %5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]
+#add traceID to log
+logging.pattern.level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
+management.tracing.sampling.probability: 1.0
+
 logging.level:
   victor: DEBUG
   hibernate.SQL: DEBUG
@@ -28,5 +30,5 @@ spring.cloud.openfeign.client.config:
 # each ms downloads the eureka contents every 3 sec
 eureka:
   client:
-    registry-fetch-interval-seconds: 3
-    instance-info-replication-interval-seconds: 3
+    registry-fetch-interval-seconds: 1
+    instance-info-replication-interval-seconds: 1
