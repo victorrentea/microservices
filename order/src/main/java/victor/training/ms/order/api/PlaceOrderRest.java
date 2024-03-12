@@ -3,8 +3,10 @@ package victor.training.ms.order.api;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.context.annotation.Bean;
+import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -69,6 +71,8 @@ public class PlaceOrderRest {
 
   private final StreamBridge streamBridge;
 
+//  @RabbitListener
+//  @ServiceActivator
   @Bean
   public Consumer<PaymentResultEvent> onPaymentResultEvent() {
     return event -> {
