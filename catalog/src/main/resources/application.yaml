@@ -1,2 +1,20 @@
 server.port: 8081
 spring.application.name: catalog
+
+spring.cloud.function.definition: onOutOfStock;onBackInStock
+
+spring.cloud.stream.bindings:
+  onOutOfStock-in-0:
+    destination: OutOfStockEvent
+    group: ${spring.application.name}
+  onBackInStock-in-0:
+    destination: BackInStockEvent
+    group: ${spring.application.name}
+spring:
+  datasource: # standalone DB shared by the 2 instances
+    url: jdbc:postgresql://localhost:5432/catalog
+    driver-class-name: org.postgresql.Driver
+    username: postgres
+    password: postgres
+  jpa:
+    generate-ddl: true

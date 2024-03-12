@@ -16,8 +16,9 @@ public class SearchProductRest {
 
   @GetMapping("catalog/search")
   public List<ProductSearchResult> search(@RequestParam String name) {
+    // SELECT PRODUS FROM .. WHERE NAME LIKE %name% AND STOCK > 0
     // TODO only return items in stock
-    return productRepo.searchByNameLikeIgnoreCase(name).stream()
+    return productRepo.searchByNameLikeIgnoreCaseAndInStockTrue(name).stream()
         .map(e -> new ProductSearchResult(e.id(), e.name(), 0))
         .toList();
   }

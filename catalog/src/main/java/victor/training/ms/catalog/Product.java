@@ -18,4 +18,5 @@ public class Product {
 
   private Double price;
 
+  private boolean inStock;
 }

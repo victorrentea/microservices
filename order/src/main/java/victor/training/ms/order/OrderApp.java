@@ -59,7 +59,7 @@ public class OrderApp {
 
     // #1 Notification
     streamBridge.send("OrderStatusChangedEvent-out", event);
-//    streamBridge.send("OrderStatusChangedEvent-out", new OrderStatusChanged2Event(order.id));
+//    streamBridge.send("OrderStatusChang edEvent-out", new OrderStatusChanged2Event(order.id));
 
     // #2 Event-Carried State Transfer [@mfowler] => burn the REST!!!
 //    streamBridge.send("OrderStatusChangedEvent-out", new OrderStatusChanged2EventV1(order));

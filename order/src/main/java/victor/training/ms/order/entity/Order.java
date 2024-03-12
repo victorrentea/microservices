@@ -56,9 +56,20 @@ public class Order extends AbstractAggregateRoot<Order> {
   public Order paid(boolean ok) {
     requireStatus(AWAITING_PAYMENT);
     status = ok ? PAYMENT_APPROVED : PAYMENT_FAILED;
+//    OrderStatus newStatus = ok ? PAYMENT_APPROVED : PAYMENT_FAILED;
     registerEvent(new OrderStatusChangedEvent(id, status, customerId));
+    // TODO send to kafka
     return this;
   }
+
+  // schimb starea doar ca si consecinta a unui event salvat si in Kafka
+  // - audit authoritativ
+  // - pot reconstitui starea orderului daca pierd baza.
+  // - pot sa aflu starea la orice moment in timp (time travelling)
+//  // TODO @KafkaListener
+//  public void handleEvent(OrderStatusChangedEvent event) {
+//    status = event.status();
+//  }
 
   public Order scheduleForShipping(String trackingNumber) {
     requireStatus(PAYMENT_APPROVED);
