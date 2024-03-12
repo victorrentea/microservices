@@ -24,7 +24,7 @@ public class CatalogApp {
     productRepo.save(new Product()
         .name("iPhone")
         .description("Apple Phone")
-        .inStock(true)
+//        .inStock(true)
         .price(1000d));
   }
 

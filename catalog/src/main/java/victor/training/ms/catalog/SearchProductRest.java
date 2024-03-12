@@ -15,14 +15,9 @@ public class SearchProductRest {
   public record ProductSearchResult(long id, String name, int stock) {}
 
   @GetMapping("catalog/search")
-  public List<ProductSearchResult> search(@RequestParam String name) { // or @RequestBody SearchCriteria
-
-    //OPT A) trenuletul REST =
-    // - latenta ++
-    // - availability risk, retry
-    // - coupling: din catalog stiu de api-ul lor.
-//    Map<productId, int> stocks = inventoryClient.fetchManyStocks(productIds)
-    return productRepo.searchByNameLikeIgnoreCaseAndInStockTrue(name).stream()
+  public List<ProductSearchResult> search(@RequestParam String name) {
+    // TODO only return items in stock
+    return productRepo.searchByNameLikeIgnoreCase(name).stream()
         .map(e -> new ProductSearchResult(e.id(), e.name(), 0))
         .toList();
   }

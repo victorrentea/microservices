@@ -1,9 +1,10 @@
-package victor.training.ms.order;
+package victor.training.ms.order.entity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -42,6 +43,8 @@ public class Order extends AbstractAggregateRoot<Order> {
   @Setter
   @NotNull
   @NotEmpty
+  @ToString.Exclude
+  @EqualsAndHashCode.Exclude
   private Map<Long, Integer> items = new HashMap<>();
 
   private void requireStatus(OrderStatus... allowed) {

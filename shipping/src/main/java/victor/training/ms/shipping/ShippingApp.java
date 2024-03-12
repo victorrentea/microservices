@@ -26,13 +26,12 @@ public class ShippingApp {
   private final ShippingProviderClient shippingProviderClient;
 
   @PostMapping("shipping")
-  public String requestShipment(@RequestParam String customerAddress) {
+  public String requestShipment(@RequestParam long orderId, @RequestParam String customerAddress) {
     log.info("Request shipping at " + customerAddress);
     return shippingProviderClient.requestShipment("our-warehouse", customerAddress);
   }
 
-  // functional-style spring message endpoint
-  @Bean/// un reply-message s-ar chema TrackingNumberReply
+  @Bean
   public Function<RequestShipment, ShippingAcceptedEvent> requestShipmentListener() {
     return event -> {
       log.info("Request shipping via q at " + event.customerAddress());

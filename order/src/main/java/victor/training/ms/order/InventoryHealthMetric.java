@@ -14,11 +14,11 @@ import java.util.Map;
 @Slf4j
 @Component
 public class InventoryHealthMetric implements HealthIndicator {
-  @Value("http://locahost:8083")
+  @Value("http://localhost:8083")
   private String urlBase;
 
   @Autowired
-  private RestTemplate restTemplate; // injectat oblkigatoriu din spring ca sa propage traceID + metrici
+  private RestTemplate restTemplate;
 
   @Override
   public Health health() {

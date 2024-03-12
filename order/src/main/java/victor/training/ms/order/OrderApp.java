@@ -1,6 +1,7 @@
 package victor.training.ms.order;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
@@ -11,7 +12,11 @@ import org.springframework.context.event.EventListener;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.client.RestTemplate;
+import victor.training.ms.order.entity.Order;
+import victor.training.ms.order.repo.OrderRepo;
 import victor.training.ms.shared.OrderStatusChangedEvent;
 
 import java.util.Map;
@@ -52,5 +57,15 @@ public class OrderApp {
     // this method runs after the successful COMMIT of the @Transactional
     //   from within which the OrderStatusChangedEvent was published
     streamBridge.send("OrderStatusChangedEvent-out", event);
+  }
+
+  @RestControllerAdvice
+  @Slf4j
+  public static class GlobalExceptionHandler {
+    @ExceptionHandler(Exception.class)
+    public String handleException(Exception e) {
+      log.error("Error", e);
+      return "Error: " + e;
+    }
   }
 }

@@ -20,6 +20,10 @@ spring:
           uri: lb://payment
           predicates:
             - Path=/payment/**
+        - id: stock
+          uri: lb://inventory
+          predicates:
+            - Path=/stock/**
         - id: shipping
           uri: lb://shipping
           predicates:

@@ -1,4 +1,4 @@
-package victor.training.ms.order;
+package victor.training.ms.order.api;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.RequiredArgsConstructor;
@@ -8,11 +8,18 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-import victor.training.ms.order.dto.PlaceOrderRequest;
+import victor.training.ms.order.client.CatalogClient;
+import victor.training.ms.order.client.InventoryClient;
+import victor.training.ms.order.client.PaymentClient;
+import victor.training.ms.order.client.ShippingClient;
+import victor.training.ms.order.entity.LineItem;
+import victor.training.ms.order.entity.Order;
+import victor.training.ms.order.repo.OrderRepo;
 import victor.training.ms.shared.OrderStatus;
 import victor.training.ms.shared.PaymentResultEvent;
 import victor.training.ms.shared.ShippingResultEvent;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -27,18 +34,27 @@ public class PlaceOrderRest {
   private final CatalogClient catalogClient;
   private final PaymentClient paymentClient;
   private final InventoryClient inventoryClient;
-  private final ShippingModule shippingDoor;
+  private final ShippingClient shippingClient;
 
-
+  public record PlaceOrderRequest(
+      @Schema(example = "margareta") String customerId,
+      List<LineItem> items,
+      String shippingAddress) {
+  }
 
   @PostMapping("order")
-
   public String placeOrder(@RequestBody PlaceOrderRequest request) {
-    List<Long> productIds = request.items().stream().map(LineItem::productId).toList();
-    Map<Long, Double> prices = catalogClient.getManyPrices(productIds);
-    if (!prices.keySet().containsAll(productIds)) {
-      throw new IllegalArgumentException("Some product ids not found! requested:" + productIds + " found:" + prices.keySet());
+    Map<Long, Double> prices = new HashMap<>();
+    for (LineItem item : request.items()) {
+      double price = catalogClient.getPrice(item.productId());  // TODO FIXME: network calls in a loop
+      prices.put(item.productId(), price);
     }
+//    List<Long> productIds = request.items().stream().map(LineItem::productId).toList();
+//    Map<Long, Double> prices = catalogClient.getManyPrices(productIds);
+//    if (!prices.keySet().containsAll(productIds)) {
+//      throw new IllegalArgumentException("Some product ids not found! requested:" + productIds + " found:" + prices.keySet());
+//    }
+
     log.info("Got prices: {}", prices);
     Map<Long, Integer> items = request.items().stream().collect(toMap(LineItem::productId, LineItem::count));
     double totalPrice = request.items().stream().mapToDouble(e -> e.count() * prices.get(e.productId())).sum();
@@ -50,19 +66,11 @@ public class PlaceOrderRest {
     orderRepo.save(order);
 
     // reservation
-    inventoryClient.reserveStock(order.id(), request.items()); //10ms - 1s - 5s: astepti cu 1/200 de th tomcat
+    inventoryClient.reserveStock(order.id(), request.items());
 
-    // cu 1MB de RAM (thread stack) blocat
-    // cu 1 thread blocat din cele 200 default ale Tomcatului
-    // din java 21 in sus, tocmat poate sa aiba 500k de threaduri, fiecare punct in care blochezi tine doar 200b~ ocupati
-
-//    CompletableFuture.runAsync(() ->
-//      sendMessage(new ReserveStockCommand(order.id(), request.items)); // mesajul pleaca, iar eu nu sunt blocat
-    // va trebui sa suspend executia pana cand primesc un raspuns pe o coada de reply
-    // si cand vine acel mesaj sa continui cu linia de mai jos
+    log.info("Created order: {}", order);
     return paymentClient.generatePaymentUrl(order.id(), order.total()) + "&orderId=" + order.id();
   }
-
 
   private final StreamBridge streamBridge;
 
@@ -73,13 +81,11 @@ public class PlaceOrderRest {
       Order order = orderRepo.findById(event.orderId()).orElseThrow();
       order.paid(event.ok());
       if (order.status() == OrderStatus.PAYMENT_APPROVED) {
-        record RequestShipment(long orderId, String customerAddress) {
-        }
-        RequestShipment command = new RequestShipment(event.orderId(), order.shippingAddress());
-        streamBridge.send("requestTrackingNumber-out", command);
-        // la aceasta linie, a plecat mesaj pe Rabbit catre shipping
+        String trackingNumber = shippingClient.requestShipment(event.orderId(), order.shippingAddress());
+        order.scheduleForShipping(trackingNumber);
       }
-      orderRepo.save(order); // <-- daca aici COMMITul nu reuseste (PK, UK, FK violation, NOT NULL)
+      orderRepo.save(order);
+      log.info("Order is now: " + order);
     };
   }
 
@@ -96,8 +102,6 @@ public class PlaceOrderRest {
         orderRepo.save(order);
       } else {
         log.warn("Shipping Rejected!");
-        // incearca alt curier, dar nu aici pt ca e respo serviciului de Shipping
-
         // compensare
 //        streamBridge.send("revertPayment-out", order.id()); // TODO tema undo payment
 //        inventoryClient.releaseStock(order.id());// TODO tema pt extra eficienta ?
@@ -115,6 +119,7 @@ public class PlaceOrderRest {
       Order order = orderRepo.findById(orderId).orElseThrow();
       order.shipped(event.ok());
       orderRepo.save(order);
+      log.info("Saved order: " + order);
     };
   }
 }

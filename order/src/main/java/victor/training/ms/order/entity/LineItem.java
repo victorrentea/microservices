@@ -1,4 +1,4 @@
-package victor.training.ms.order;
+package victor.training.ms.order.entity;
 
 import static java.util.Objects.requireNonNull;
 

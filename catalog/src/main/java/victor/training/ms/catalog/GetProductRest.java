@@ -14,7 +14,7 @@ public class GetProductRest {
   public record GetProductResponse(long id,
                             String name,
                             String description,
-//                            int stock, // 🤔 FE can fetch it directly from Stock REST API?
+//                            int stock, // TODO
                             double price) {}
 
   @GetMapping("catalog/{productId}")

@@ -1,9 +1,11 @@
-package victor.training.ms.order;
+package victor.training.ms.order.api;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
+import victor.training.ms.order.entity.Order;
+import victor.training.ms.order.repo.OrderRepo;
 
 @RestController
 @RequiredArgsConstructor

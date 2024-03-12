@@ -1,4 +1,4 @@
-package victor.training.ms.order;
+package victor.training.ms.order.client;
 
 import jakarta.validation.constraints.NotNull;
 import org.springframework.cloud.openfeign.FeignClient;
