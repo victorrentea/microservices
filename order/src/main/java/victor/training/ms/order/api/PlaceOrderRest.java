@@ -74,7 +74,7 @@ public class PlaceOrderRest {
   @Bean
   public Consumer<PaymentResultEvent> onPaymentResultEvent() {
     return event -> {
-      log.info("Received: {}", event);
+      log.info("Received: {}", event); // oprind shipping-service vad acest mesaj incercat de 3 ori si apoi abandonat intrucat nu mi-am definit un DLQ in rabbit
       Order order = orderRepo.findById(event.orderId()).orElseThrow();
       order.paid(event.ok());
       if (order.status() == OrderStatus.PAYMENT_APPROVED) {
