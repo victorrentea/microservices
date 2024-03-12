@@ -29,4 +29,3 @@ spring:
           catalog:
             connectTimeout: 10000
             readTimeout: 10000
-
