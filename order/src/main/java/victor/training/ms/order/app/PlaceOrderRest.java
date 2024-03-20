@@ -36,6 +36,8 @@ public class PlaceOrderRest {
   @PostMapping("order")
   public String placeOrder(@RequestBody PlaceOrderRequest request) {
     List<Long> productIds = request.items().stream().map(LineItem::productId).toList();
+    log.info("Placing order for products: {}", productIds);
+
     Map<Long, Double> prices = catalogClient.getManyPrices(productIds); // batching
     if (prices.size() != productIds.size()) {
       throw new IllegalArgumentException("Not all products have a price");

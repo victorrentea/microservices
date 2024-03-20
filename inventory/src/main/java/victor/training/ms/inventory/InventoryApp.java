@@ -35,7 +35,7 @@ public class InventoryApp {
   void initialData() {
     stockRepo.save(new Stock()
         .productId(1L)
-        .items(2));
+        .items(20));
   }
 
   private final StreamBridge streamBridge;
