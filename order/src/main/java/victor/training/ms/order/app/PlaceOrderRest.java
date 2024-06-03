@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import victor.training.ms.order.client.CatalogClient;
 import victor.training.ms.order.client.InventoryClient;
-import victor.training.ms.order.client.PaymentClient;
 import victor.training.ms.order.client.PaymentGatewayClient;
 import victor.training.ms.order.entity.LineItem;
 import victor.training.ms.order.entity.Order;
@@ -25,7 +24,6 @@ import static java.util.stream.Collectors.toMap;
 public class PlaceOrderRest {
   private final OrderRepo orderRepo;
   private final CatalogClient catalogClient;
-  private final PaymentClient paymentClient;
   private final InventoryClient inventoryClient;
 
   public record PlaceOrderRequest(
