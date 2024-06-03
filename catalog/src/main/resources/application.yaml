@@ -12,9 +12,13 @@ spring.cloud.stream.bindings:
     group: ${spring.application.name}
 spring:
   datasource: # standalone DB shared by the 2 instances
-    url: jdbc:postgresql://localhost:5432/catalog
-    driver-class-name: org.postgresql.Driver
-    username: postgres
-    password: postgres
+    url: jdbc:h2:tcp://localhost:9092/~/test
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+#    url: jdbc:postgresql://localhost:5432/catalog
+#    driver-class-name: org.postgresql.Driver
+#    username: postgres
+#    password: postgres
   jpa:
     generate-ddl: true
