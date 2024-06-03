@@ -1,14 +1,15 @@
 version: '3.8'
 
 services:
-  postgres:
-    image: postgres:11
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: catalog
-    ports:
-      - "5432:5432"
+# StartDatabase.java instead
+#  postgres:
+#    image: postgres:11
+#    environment:
+#      POSTGRES_USER: postgres
+#      POSTGRES_PASSWORD: postgres
+#      POSTGRES_DB: catalog
+#    ports:
+#      - "5432:5432"
 
   rabbit:
     image: rabbitmq:3-management #has the management plugin preinstalled
@@ -16,13 +17,14 @@ services:
       - "5672:5672" #main port
       - "15672:15672" #admin console: http://localhost:15672 login with guest:guest
 
-  wiremock:
-    image: wiremock/wiremock
-    volumes:
-      - ./wiremock:/home/wiremock
-    command: --async-response-enabled=true
-    ports:
-        - "9999:8080"
+# start wiremock instead of docker
+#  wiremock:
+#    image: wiremock/wiremock
+#    volumes:
+#      - ./wiremock:/home/wiremock
+#    command: --async-response-enabled=true
+#    ports:
+#        - "9999:8080"
 
   zipkin:
     image: openzipkin/zipkin
