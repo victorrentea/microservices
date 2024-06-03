@@ -16,10 +16,6 @@ spring:
           uri: lb://catalog
           predicates:
             - Path=/catalog/**
-        - id: payment
-          uri: lb://payment
-          predicates:
-            - Path=/payment/**
         - id: stock
           uri: lb://inventory
           predicates:
