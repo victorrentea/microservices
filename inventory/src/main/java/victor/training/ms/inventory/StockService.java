@@ -14,9 +14,12 @@ import java.util.function.Consumer;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class ReserveStockService {
+public class StockService {
   private final StockRepo stockRepo;
   private final StockReservationRepo stockReservationRepo;
+
+  //  private final StreamBridge streamBridge;
+  //  streamBridge.send("backInStockEvent-out-0", event);
 
   @Transactional
   public void reserveStock(long orderId, List<LineItem> items) {
@@ -40,6 +43,13 @@ public class ReserveStockService {
   private void subtractStock(long productId, Integer count) {
     Stock stock = stockRepo.findByProductId(productId).orElseThrow();
     stock.remove(count);
+    stockRepo.save(stock);
+  }
+
+  @Transactional
+  public void addStock(long productId, int items) {
+    Stock stock = stockRepo.findByProductId(productId).orElse(new Stock().productId(productId));
+    stock.add(items);
     stockRepo.save(stock);
   }
 

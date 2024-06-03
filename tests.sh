@@ -8,7 +8,7 @@ read orderId
 echo "\n---- Get order"
 curl -X GET http://localhost/order/$orderId
 
-#sleep 1 # mq
+sleep 1 # mq
 echo "\n---- Confirm payment from Gateway"
 curl -X PUT -H 'Content-Type: application/json' --data-raw true  http://localhost/order/$orderId/paid
 #curl -X PUT -H 'Content-Type: application/json' --data-raw true  http://localhost/payment/$orderId/paid

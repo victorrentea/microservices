@@ -9,13 +9,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 public class AddStockRest {
-  private final StockRepo stockRepo;
+  private final StockService stockService;
 
   @PostMapping("stock/{productId}/add/{items}")
-  @Transactional
   public void addStock(@PathVariable long productId, @PathVariable int items) {
-    Stock stock = stockRepo.findByProductId(productId).orElse(new Stock().productId(productId));
-    stock.add(items);
-    stockRepo.save(stock);
+    stockService.addStock(productId, items);
   }
 }

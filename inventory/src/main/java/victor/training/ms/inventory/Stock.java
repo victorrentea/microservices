@@ -4,8 +4,6 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import org.springframework.data.domain.AbstractAggregateRoot;
-import victor.training.ms.shared.BackInStockEvent;
-import victor.training.ms.shared.OutOfStockEvent;
 
 @Data
 @Entity
@@ -24,9 +22,6 @@ public class Stock extends AbstractAggregateRoot<Stock> {
     if (n <= 0) {
       throw new IllegalArgumentException("Negative: " + n);
     }
-    if (items == 0) {
-      registerEvent(new BackInStockEvent(productId));
-    }
     items += n;
   }
 
@@ -38,8 +33,5 @@ public class Stock extends AbstractAggregateRoot<Stock> {
       throw new IllegalArgumentException("Not enough stock to remove: " + n);
     }
     items -= n;
-    if (items == 0) {
-      registerEvent(new OutOfStockEvent(productId));
-    }
   }
 }
