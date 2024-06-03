@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 import victor.training.ms.order.client.CatalogClient;
 import victor.training.ms.order.client.InventoryClient;
 import victor.training.ms.order.client.PaymentClient;
+import victor.training.ms.order.client.PaymentGatewayClient;
 import victor.training.ms.order.entity.LineItem;
 import victor.training.ms.order.entity.Order;
 import victor.training.ms.order.repo.OrderRepo;
@@ -57,6 +58,14 @@ public class PlaceOrderRest {
     inventoryClient.reserveStock(order.id(), request.items());
 
     log.info("Created order: {}", order);
-    return paymentClient.generatePaymentUrl(order.id(), order.total()) + "&orderId=" + order.id();
+    return generatePaymentUrl(order.id(), order.total()) + "&orderId=" + order.id();
   }
+
+  public String generatePaymentUrl(Long orderId, Double total) {
+    log.info("Request payment url for orderid: {}, total: {}", orderId, total);
+    return paymentGatewayClient.generatePaymentLink("order/" + orderId + "/payment-accepted", total, "modulith-app");
+  }
+
+  private final PaymentGatewayClient paymentGatewayClient;
+
 }
