@@ -38,6 +38,7 @@ public class CustomerApp {
 
   @GetMapping("customer/{customerId}")
   public CustomerDto getCustomer(@PathVariable String customerId) {
+    log.info("Get customer {}", customerId);
     Customer customer = customerRepo.findById(customerId).orElseThrow();
     return new CustomerDto(customer.id(), customer.email(), customer.address());
   }
