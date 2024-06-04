@@ -1,11 +1,12 @@
 server.port: 8081
 spring.application.name: catalog
 
-#spring.cloud.function.definition: onOutOfStock;...
-#spring.cloud.stream.bindings:
-#  onOutOfStock-in-0:
-#    destination: OutOfStockEvent
-#    group: ${spring.application.name}
+#spring.cloud.function.definition: onOutOfStock
+spring.cloud.stream.bindings:
+  onOutOfStock-in-0:
+    destination: OutOfStockEvent
+    group: ${spring.application.name} #daca pornesc doua instante,
+    # 1 mesaj va fi procesat de o singura instanta
 
 spring:
   datasource: # standalone DB shared by the 2 instances

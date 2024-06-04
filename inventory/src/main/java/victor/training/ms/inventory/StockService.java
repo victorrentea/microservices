@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import victor.training.ms.shared.OrderStatus;
 import victor.training.ms.shared.OrderStatusChangedEvent;
+import victor.training.ms.shared.OutOfStockEvent;
 
 import java.util.List;
 import java.util.function.Consumer;
@@ -50,7 +51,7 @@ public class StockService {
         .items(count);
     stockReservationRepo.save(reservation);
   }
-  public record OutOfStockEvent(long productId){}
+
   @Transactional
   public void addStock(long productId, int items) {
     Stock stock = stockRepo.findByProductId(productId).orElse(new Stock().productId(productId));
