@@ -16,7 +16,7 @@ public class HelloRest {
   private final RestTemplate restTemplate;
 
   @GetMapping("notification/hello") // http://localhost/notification/hello
-  public String hello() {
+  public String hello() { //  TODO keep
     log.info("Requesting customer");
     // IP:PORT ACCESS DIRECT - nefezabil in realitate
 //    var dto = new RestTemplate().getForObject("http://localhost:8082/customer/margareta", CustomerDto.class);
@@ -28,10 +28,10 @@ public class HelloRest {
 //    var dto = restTemplate.getForObject("http://localhost/customer/margareta", CustomerDto.class);
 
     // am mers direct la micro celalalt fara api gateway
-//    var dto = restTemplate.getForObject(
-//        "http://customer/customer/margareta", CustomerDto.class);
+    // merge si traceId propagation
+    var dto = restTemplate.getForObject("http://customer/customer/margareta", CustomerDto.class);
 
-    var dto = customerClient.getCustomer("margareta");
+//    var dto = customerClient.getCustomer("margareta");
     return "Hello from Notification: " + dto;
   }
 }
