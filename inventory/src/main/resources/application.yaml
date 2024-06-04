@@ -6,7 +6,7 @@ spring.cloud.stream.bindings:
   onOrderStatusChangedEvent-in-0:
     destination: OrderStatusChangedEvent
     group: ${spring.application.name}
-  outOfStockEvent-out-0:
-    destination: OutOfStockEvent
+  outOfStockEvent-out-0: # name of channel
+    destination: OutOfStockEvent # numele cozii din rabbit
   backInStockEvent-out-0:
     destination: BackInStockEvent

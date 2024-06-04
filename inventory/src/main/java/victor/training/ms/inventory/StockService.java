@@ -2,6 +2,7 @@ package victor.training.ms.inventory;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,6 +33,16 @@ public class StockService {
     }
   }
 
+  private void subtractStock(long productId, Integer count) {
+    Stock stock = stockRepo.findByProductId(productId).orElseThrow();
+    stock.remove(count);
+    stockRepo.saveAndFlush(stock);
+    if (stock.items()==0) {
+      log.info("Sending message out");
+      streamBridge.send("outOfStockEvent-out-0", new OutOfStockEvent(productId));
+    }
+  }
+  private final StreamBridge streamBridge;
   private void createReservation(long orderId, long productId, Integer count) {
     StockReservation reservation = new StockReservation()
         .orderId(orderId)
@@ -39,13 +50,7 @@ public class StockService {
         .items(count);
     stockReservationRepo.save(reservation);
   }
-
-  private void subtractStock(long productId, Integer count) {
-    Stock stock = stockRepo.findByProductId(productId).orElseThrow();
-    stock.remove(count);
-    stockRepo.save(stock);
-  }
-
+  public record OutOfStockEvent(long productId){}
   @Transactional
   public void addStock(long productId, int items) {
     Stock stock = stockRepo.findByProductId(productId).orElse(new Stock().productId(productId));

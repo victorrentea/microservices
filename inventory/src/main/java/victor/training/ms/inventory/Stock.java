@@ -17,6 +17,8 @@ public class Stock extends AbstractAggregateRoot<Stock> {
 
   @NotNull
   private Integer items = 0;
+//  @Version
+//  private Long versionPtOptimisticLocking;
 
   public void add(int n) {
     if (n <= 0) {

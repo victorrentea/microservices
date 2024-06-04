@@ -14,17 +14,24 @@ public class GetProductRest {
 //  private final StockDoor stockDoor;
 
   public record GetProductResponse(long id,
-                            String name,
-                            String description,
+                                   String name,
+                                   String description,
 //                            int stock, // TODO
-                            double price) {}
+                                   double price
+                                    , boolean inStock) {}
 
   @GetMapping("catalog/{productId}")
   public GetProductResponse getProduct(@PathVariable long productId) {
     log.info("Getting product {}", productId);
     Product product = productRepo.findById(productId).orElseThrow();
 //    int stock = stockDoor.getStock(productId);
-    return new GetProductResponse(product.id(), product.name(), product.description(), /*stock,*/ product.price());
+    return new GetProductResponse(
+        product.id(),
+        product.name(),
+        product.description(),
+        /*stock,*/
+        product.price(),
+        product.inStock());
   }
 
 
