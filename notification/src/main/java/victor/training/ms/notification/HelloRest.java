@@ -15,7 +15,7 @@ public class HelloRest {
   private final CustomerClient customerClient;
   private final RestTemplate restTemplate;
 
-  @GetMapping("hello")
+  @GetMapping("notification/hello") // http://localhost/notification/hello
   public String hello() {
     log.info("Requesting customer");
     var dto = new RestTemplate().getForObject("http://localhost:8082/customer/margareta", CustomerDto.class);

@@ -28,4 +28,7 @@ spring:
           uri: lb://order
           predicates:
             - Path=/order/**
-
+        - id: notification
+          uri: lb://notification
+          predicates:
+            - Path=/notification/**
