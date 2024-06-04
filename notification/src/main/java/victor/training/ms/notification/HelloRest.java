@@ -18,10 +18,20 @@ public class HelloRest {
   @GetMapping("notification/hello") // http://localhost/notification/hello
   public String hello() {
     log.info("Requesting customer");
-    var dto = new RestTemplate().getForObject("http://localhost:8082/customer/margareta", CustomerDto.class);
+    // IP:PORT ACCESS DIRECT - nefezabil in realitate
+//    var dto = new RestTemplate().getForObject("http://localhost:8082/customer/margareta", CustomerDto.class);
+
+    // PRIN API_GATEWAY: waste de resurse si timp
+    // am facut new RestTemplate  -> TraceId nu se propaga intre sisteme::  NU MERGE TODO
 //    var dto = new RestTemplate().getForObject("http://localhost/customer/margareta", CustomerDto.class);
+
 //    var dto = restTemplate.getForObject("http://localhost/customer/margareta", CustomerDto.class);
-//    var dto = customerClient.getCustomer("margareta");
+
+    // am mers direct la micro celalalt fara api gateway
+//    var dto = restTemplate.getForObject(
+//        "http://customer/customer/margareta", CustomerDto.class);
+
+    var dto = customerClient.getCustomer("margareta");
     return "Hello from Notification: " + dto;
   }
 }
