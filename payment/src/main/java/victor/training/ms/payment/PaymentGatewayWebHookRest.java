@@ -6,9 +6,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-import victor.training.ms.order.client.ShippingClient;
-import victor.training.ms.order.entity.Order;
-import victor.training.ms.order.repo.OrderRepo;
 import victor.training.ms.shared.OrderStatus;
 
 @Slf4j
@@ -16,7 +13,7 @@ import victor.training.ms.shared.OrderStatus;
 @RequiredArgsConstructor
 public class PaymentGatewayWebHookRest { // call-back from the payment gateway to confirm the payment
   private final OrderClient orderClient;
-  @PutMapping("order/{orderId}/paid")
+  @PutMapping("payment/{orderId}/paid")
   public String confirmPayment(@PathVariable long orderId, @RequestBody boolean ok) {
     orderClient.onPayment(orderId, ok);
     return "Payment callback received";

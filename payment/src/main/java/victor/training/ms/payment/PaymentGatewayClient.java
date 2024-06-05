@@ -1,4 +1,4 @@
-package victor.training.ms.order.client;
+package victor.training.ms.payment;
 
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;

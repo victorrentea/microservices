@@ -28,5 +28,3 @@ spring:
           catalog:
             connectTimeout: 10000
             readTimeout: 10000
-          payment-gateway:
-            url: http://localhost:9999

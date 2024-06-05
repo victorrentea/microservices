@@ -9,7 +9,7 @@ echo ---- Get order
 curl -X GET http://localhost/order/%orderId%
 
 echo ---- Confirm payment from Gateway
-curl -X PUT -H "Content-Type: application/json" --data-raw true  http://localhost/order/%orderId%/paid
+curl -X PUT -H "Content-Type: application/json" --data-raw true  http://localhost/payment/%orderId%/paid
 
 timeout /t 1
 
