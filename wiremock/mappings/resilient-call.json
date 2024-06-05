@@ -4,7 +4,7 @@
     "urlPathPattern": "/server/call"
   },
   "response": {
-    "status": 503,
+    "status": 200,
     "body": "ok",
     "fixedDelayMilliseconds": 20
   }

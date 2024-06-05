@@ -11,6 +11,8 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import static java.lang.Thread.sleep;
+
 @Slf4j
 @RequiredArgsConstructor
 @RestController
@@ -23,8 +25,9 @@ public class Resilience {
   }
 
   @GetMapping("retry")
-  @Retry(name = "retry")
+  @Retry(name = "retryX")
   public String retry() {
+    log.info("calling");
     return server.call(); // RPC call: gRPC, REST, SOAP/xml, RMI, CORBA, drivere pt semafoare
   }
 
@@ -35,9 +38,9 @@ public class Resilience {
   }
 
   @GetMapping("circuit")
-  @Retry(name = "retry") // order = 1
+//  @Retry(name = "retry") // order = 1
   @CircuitBreaker(name = "circuit", fallbackMethod = "circuitFallback") // order=2
-  @Cacheable("circuit")
+//  @Cacheable("circuit")
   public String circuit() {
     return server.call();
   }

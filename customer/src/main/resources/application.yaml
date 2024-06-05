@@ -8,9 +8,9 @@ resilience4j: # must-have in resilient microservice
         max-concurrent-calls: 2
   retry:
     instances:
-      retry:
-        max-attempts: 3
-        wait-duration: 500ms
+      retryX:
+        max-attempts: 2
+        wait-duration: 5000ms
         retry-exceptions:
           - feign.FeignException.ServiceUnavailable
           - feign.RetryableException #eg Timeout
@@ -20,12 +20,20 @@ resilience4j: # must-have in resilient microservice
     instances:
       circuit:
         sliding-window-size: 10
-        sliding-window-type: time_based
-        failure-rate-threshold: 99
+        sliding-window-type: count_based
+        failure-rate-threshold: 80
 
         wait-duration-in-open-state: 3s
 
-        permitted-number-of-calls-in-half-open-state: 10
+        permitted-number-of-calls-in-half-open-state: 1
+  ratelimiter:
+    instances:
+      rate:
+        limit-for-period: 2
+        limit-refresh-period: 10s
+        timeout-duration: 0s
+
+
 
 spring:
   cloud:
