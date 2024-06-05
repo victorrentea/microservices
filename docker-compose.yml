@@ -30,3 +30,22 @@ services:
     image: openzipkin/zipkin
     ports:
       - "9411:9411" # http://localhost:9411/zipkin/
+
+  prometheus: # http://localhost:9090
+    image: prom/prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - .:/etc/prometheus
+
+  grafana: # http://localhost:3000/d/spring_boot_21/spring-boot-3-x-statistics?orgId=1&refresh=1s
+    image: grafana/grafana
+    environment:
+      GF_DASHBOARDS_MIN_REFRESH_INTERVAL: "1s"
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_SECURITY_ADMIN_PASSWORD: "pass"  # login using admin:pass to edit dashboards
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/provisioning/dashboards:/var/lib/grafana/dashboards
