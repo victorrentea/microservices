@@ -2,21 +2,12 @@ package victor.training.ms.notification;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.bouncycastle.jcajce.provider.symmetric.AES.CFB;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
-import victor.training.ms.notification.CustomerClient.CustomerDto;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-
-import static java.util.Collections.synchronizedMap;
 
 @Slf4j
 @RestController
@@ -41,9 +32,15 @@ public class HelloRest {
     // merge si traceId propagation
 //    var dto = restTemplate.getForObject("http://customer/customer/margareta", CustomerDto.class);
 
+    log.info("Cu traceid");
+    CompletableFuture.runAsync(() -> {
+      log.info("Traceid pierdut");
+    });// ATENTIE CAND SCHIMBI THREADUL ca poti pierde TraceID !
+
     var dto = customerClient.getCustomer("margareta");
     return "Hello from Notification: " + dto;
   }
+  private final ThreadPoolTaskExecutor e;
 
   // asta-i pemntru Gicu din spate
 //  @GetMapping("product/{id}")
