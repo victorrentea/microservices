@@ -32,7 +32,7 @@ public class InventoryApp {
   void initialData() {
     stockRepo.save(new Stock()
         .productId(1L)
-        .items(1));
+        .items(10));
   }
 
 }

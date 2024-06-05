@@ -5,7 +5,8 @@ resilience4j: # must-have in resilient microservice
   bulkhead:
     instances:
       fat-query:
-        max-concurrent-calls: 2
+        max-concurrent-calls: 1
+
   retry:
     instances:
       retryX:

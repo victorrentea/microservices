@@ -39,9 +39,9 @@ public class HelloRest {
 
     // am mers direct la micro celalalt fara api gateway
     // merge si traceId propagation
-    var dto = restTemplate.getForObject("http://customer/customer/margareta", CustomerDto.class);
+//    var dto = restTemplate.getForObject("http://customer/customer/margareta", CustomerDto.class);
 
-//    var dto = customerClient.getCustomer("margareta");
+    var dto = customerClient.getCustomer("margareta");
     return "Hello from Notification: " + dto;
   }
 

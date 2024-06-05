@@ -31,6 +31,7 @@ public class Resilience {
     return server.call(); // RPC call: gRPC, REST, SOAP/xml, RMI, CORBA, drivere pt semafoare
   }
 
+//  @Bulkhead(name="fat-query", type = )
   @GetMapping("rate")
   @RateLimiter(name = "rate")
   public String rate() {
