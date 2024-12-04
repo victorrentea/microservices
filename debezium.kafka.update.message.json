@@ -200,8 +200,8 @@
       "email": "jd@jd.com"
     },
     "source": {
-      "version": "2.5.4.Final",
       "connector": "mysql",
+      "version": "2.5.4.Final",
       "name": "dbserver1",
       "ts_ms": 1717359915000,
       "snapshot": "false",
