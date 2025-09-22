@@ -1,0 +1,113 @@
+All slides: https://victorrentea.ro/slides/
+These notes.txt: 
+https://drive.google.com/open?id=1_LREM2Q0HyP78rGnP531ovAesdmCiKd4&usp=drive_fs
+(you'll get a link to them soon)
+
+Join my community: 
+https://www.meetup.com/european-software-crafters/
+
+
+
+
+
+What is a microservice? And why would I need them?
+=  it's an application (deployable) with a few responsibilities (ideally 1)
++ isolated from eachother: fault-tolerant to others becoming unavailable
++ deployable independently: safer to release, eg java upg to 25
++ scalable independently:
+    scale out(horizontal)=add more machines
+    > elastic scaling out/in in face of variable load to and preserve SLAs(errors%,latency) in face of higher load later cost-optimize
+    scale up (vertical)= add resources(CPU/mem) to 1 machine
++ technology independent: C#, Java, Py/ml, Scala..
++ better separation between teams (separate Git repo)
+
+± Monitoring   
+    + when one service goes wild, it's quick to see who to blame
+    - a lot of tech stacks: NewRelic for metrics, traces, log aggregation
+
+
+🚩 Have we split the microsevices too small? Consider merging them back.
+- PRs touching 2+ for > 50% of features
+
+
+
+
+
+become possible: "Trunk-based development"=the death of Feature-Branches; devs add code to 'master' and app gets deployed continuously. Code review is replaced with Pair Programming. you keep adding to a shared 'master' code every day, guarded by feature flags set to false. ±TDD
+
+
+- how do they integrate with the others?  
+   > SYNC(REST)/ASYNC(pubsub,rabbit,kafka,MQ,solace)
+
+Sharing a DB with other apps?
++consistency
++no data replication
++troubleshooting
++cheaper (at start)
++faster(JDBC:binary
+   +JOIN them' all)
+
+-alter table is hard
+-race bugs
+-deadlock SELECT FOR  UPDATE: A,B   B,A
+-SPOFailure
+-Bottleneck
+-PRIVACY (think:GDPR)
+-who owns this table?
+ =>separate schema/app
+ =>GO_LOAN, JA_LOAN
+
+
+
+
+
+
+Agenda:
+Day1 - Micro Pros/Cons, REST API design
+Day2 - Resilience, Observability
+Day3 - Message-based comm
+
+
+
+
+=== NFRs = Non-Functional Requirements, aka "-ility" ===
+=== Architecture Qualities ===
+- availability of services in the core domain (business-critical): add-to-cart, checkout, catalog, authn± 
+    - 99% => yearly downtime = 3.65 days
+    - 99.999% => downtime = 5.26 minutes/year
+- fault-tolerance
+- recoverability: MTTR=RTO after a failure
+- throughput: no of requests/messages/line processed /time
+- scalability: when load increases (~no of users)
+    - latency + %error=~constant
+    - costs should increase lineary
+- latency: <1s (naive); correct 100ms 95%th for 50rps
+- agility (aka lead time): release to prod daily; in the meantime, in automotive, release cycles of 2y.
+- privacy: eg data retention GDPR, right to be forgotten
+    > here in DB we hold on your data for 99 years. we HAVE to REMEMBER EVERYTHING; good luck migrating your DB.
+- regulatory/legal: "legal hold" @Test to prove the data in the new GCP-based system === one in the old ORA-based system to get the business signoff.
+- accesibility UX: color blind etc, support for screen reader (eg: <button alt="human readable for blind">)
+- extensibility: ability to add more features with low impact 
+- traceability: CREDIT.APPROVED_BY_USERNAME, .LAST_MODIFIED_BY='my cousin'
+- observability = {metrics,logs,alerts,tracing}
+
+
+
+
+
+you plan to breaking-change your REST API. How do you know who is using it?
+- request header: Client-Id: <caller-app>
+(requires client collab)
+- Auth headers: Authorization: Basic
+- Auth headers: Authorization: Bearer <jwt>
+- Auth headers: X-ApiKey: 08qyr29y2379r23yr798236
+- 2TLS: client-certif 
+- Cookies for bro' clients
+- TraceId/traceparent
+
+
+
+https://github.com/victorrentea/clean-architecture.git
+
+Cum aflii deps tranzitive aduse de spring boot parent ver X
+https://repo1.maven.org/maven2/org/springframework/boot/spring-boot-dependencies/3.3.5/spring-boot-dependencies-3.3.5.pom
