@@ -12,6 +12,7 @@ https://www.meetup.com/european-software-crafters/
 
 What is a microservice? And why would I need them?
 =  it's an application (deployable) with a few responsibilities (ideally 1)
+=== Split DOAR daca ===
 + isolated from eachother: fault-tolerant to others becoming unavailable
 + deployable independently: safer to release, eg java upg to 25
 + scalable independently:
@@ -111,3 +112,116 @@ https://github.com/victorrentea/clean-architecture.git
 
 Cum aflii deps tranzitive aduse de spring boot parent ver X
 https://repo1.maven.org/maven2/org/springframework/boot/spring-boot-dependencies/3.3.5/spring-boot-dependencies-3.3.5.pom
+
+Notes.txt are here:
+https://github.com/victorrentea/microservices/blob/db25/notes.txt
+
+=== 🏆 How do we find correct boundaries of Microservices? 🏆 ===
+✂️ NFRs: availability, scalability
+✂️ Tech freedom: eg py for ML
+✂️ Reusable across technologies
+✂️ Separate groups of bu$iness people (stakeholders): invoicing, inventory,
+   Conway's Law: orgs will produce systems that will match structure of the org
+✂️ Service-proxy: vs BPM, SAP, COBOL, ANAF
+✂️ Api Gateway
+💖 Frequent cross-changes 
+💖 Clients typically need data from everywhere. also consider CQRS
+💖 Sync-fetch bulks of data of another service
+💖 
+
+"Reporting"=visualising trends (graphs) for analytics, recomm, steer the business. How should *THEY* get my data?
+- SELECT from prod DB = COUPLING to my deareast of all-DB
+    - E-T-L every Sun night -- Too late
+    - only my VIEWS
+    Whenver we alter a table, #care for BI. make them a view until they adjust their queries.
+- ask you to push data to them via files over sftp; what schema?; CSV is back | | | | 
+- 💖Real-time publish them a Kafka event. #welcome to the future
+
+
+imagine eMag, subdomains:
+- marketing / ads
+- catalog (browsing, search, comparing)
+- sales = b2b
+- inventory = WMS
+- invoicing
+- customers = CRM 
+- fulfillment not "order"
+- reviews & recommendations
+- shipping
+- finance
+- marketplace
+- after sales (warranty, refunds, service)
+
+
+
+
+
+
+
+Legend: ✂️reason to split, 💖reason to merge(keep together)
+
+
+
+TODO PATCH
+- We had a multi-step wizzard that filled 200+ fields of a Bond. Step1>2>3>Finish
+
+PATCH bond/{id} {+50 attributes} after step1
+PUT bond/{id}/step1 {+50 attributes} 
+metamodel of our data: 
+[{fieldName:"title", type:"string", length:20}...]
+
+
+REST API Design advices:
+- preserve bacwards compatibility with a @Test
+- integration-test to prove their API didn't change
+- GET /item/{id} -> consider a batch query API
+- @GetMapping DomainModel // NEVER
+- have ..Response ..Request objects instead of Dto
+- item/id/validate reads better than PUT /item/id/status
+- PATCH avoid
+- Errors
+
+
+
+
+
+
+
+clonati: https://github.com/victorrentea/resilience
+mvn install -> what errors? 
+2nd hour we'll work on it🤞
+
+worked 
+- without ZScaler + IntraWL
+- and with ZScaler + GuestWL: INSpireTRU$T
+
+
+--- RESILIENCE
+- Async HTTP: 202 ACcepted+URL to poll 
+- Inbox Table = Store, then process
+- Failure Unit design
+- Failover cache
+- Queueing: delaying some work to keep in comfort zone
+
+- Circuit Breaker
+- Istio
+- Api Gateway
+
+--- OPS
+- Log aggregation (Splunk=log aggregator); json log format in prod; text on local; obfuscate GDPR before logging
+    - OTEL "baggage" that propagates across systems, and visible in Splunk columns.
+    one projects logs 250GB/day: 1GB zip/day
+        prod.log.level=INFO
+        What should we log on INFO?
+    traceId to allow you to correlate logs in CallerService->CalledService
+    micrometer-open telemetry: Free stack: Micrometer in java -> Prometheus -> Grafana
+
+New Relic: Performance 
+- Traces allow us to overview the entire chain of a flow (all the systems/DBs involved), and detect where most time is lost -> New Relic SEE @George knows best.
+- Metrics: #musthave set Prod alerts
+
+
+
+- Helm Charts
+- Health probes
+- Deployment strategies

@@ -33,6 +33,7 @@ spring:
       client:
         config:
           server:
+
             # wait for server to accept your TCP/IP connection
             connect-timeout: 100
             # wait for server to repond to your request
