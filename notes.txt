@@ -225,3 +225,17 @@ New Relic: Performance
 - Helm Charts
 - Health probes
 - Deployment strategies
+
+
+
+How to reduce the risk of breaking prod on release? reduce RTO
+- let there be many, true, passing, long integration tests!
+- feat-flags for new/not-yet-ready feat
+- plan for disaster(rollback):eg do we have SQL undo scripts? (yes, but not tested). so we dump a DB backup before release.
+- blue/green=> Blue=old, Green=new; route from Blue->Green trafic 5%,10%,50%,80%
+- canary:
+
+
+
+Contract tests sa verifica ca nu mi-am stricat contractul accidental:
+https://github.com/victorrentea/clean-architecture/blob/07f0e903e0866e688e3add19f91be354b683065c/clean-application/src/test/java/victor/training/clean/OpenAPIDidNotChangeTest.java
