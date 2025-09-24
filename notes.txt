@@ -118,16 +118,16 @@ https://github.com/victorrentea/microservices/blob/db25/notes.txt
 
 === 🏆 How do we find correct boundaries of Microservices? 🏆 ===
 ✂️ NFRs: availability, scalability
-✂️ Tech freedom: eg py for ML
+✂️ Tech freedom: eg py for ML; ease to upgrade libs
 ✂️ Reusable across technologies
 ✂️ Separate groups of bu$iness people (stakeholders): invoicing, inventory,
    Conway's Law: orgs will produce systems that will match structure of the org
 ✂️ Service-proxy: vs BPM, SAP, COBOL, ANAF
 ✂️ Api Gateway
-💖 Frequent cross-changes 
-💖 Clients typically need data from everywhere. also consider CQRS
+💖 Frequent cross-changes PRs
+💖 Clients typically need data from everywhere
 💖 Sync-fetch bulks of data of another service
-💖 
+💖 Consistency 
 
 "Reporting"=visualising trends (graphs) for analytics, recomm, steer the business. How should *THEY* get my data?
 - SELECT from prod DB = COUPLING to my deareast of all-DB
@@ -239,3 +239,29 @@ How to reduce the risk of breaking prod on release? reduce RTO
 
 Contract tests sa verifica ca nu mi-am stricat contractul accidental:
 https://github.com/victorrentea/clean-architecture/blob/07f0e903e0866e688e3add19f91be354b683065c/clean-application/src/test/java/victor/training/clean/OpenAPIDidNotChangeTest.java
+
+
+
+
+
+=== what do you take away from all this training? ===
+- document architecture decisions (ADR on wiki/git)
+- @Mock is evil 👿: fragile, overly complex. Integration Tests is the way✌️
+- automate contract testing between microservices (a dream?). in the meantime, exercise core biz flows in staging in e2e tests
+- tracing rocks🤘 - where time is spent/who calls who (ask for a NewRelic license, and beg someone to do all an intro)
+- store-and-forward: insert then send
+- dependabot/renovate bot to auto upgrade libraries
+- "War stories with Mihaela" DB podcast
+- async CQRS = read from a different storage (ES,Redis) than you write to
+- avoid PATCH = lacks semantics
+- @Transactional methods calling APIs = dangerous under high RPS + slow remote apis => alarm on hikari connection acquisition time metric in prod.
+- Architect-wannabe guild meeting biweekly to design his system
+- retry with care (from a single point, eg: edge/AG)
+- idempotency key
+- optimistic lock (version int,date/ ETag hash) vs concurrent REST.Messages calls
+- OUTBOX/INBOX tables
+- failure-units=bulkheads = some microservices are ok to drown together.
+- 
+
+
+
