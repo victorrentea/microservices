@@ -195,9 +195,9 @@
     },
     "after": {
       "id": 1005,
-      "first_name": "Jane",
+      "first_name": "Joe",
       "last_name": "DOE",
-      "email": "jd@jd.com"
+      "email": "john.doe@gmail.com"
     },
     "source": {
       "connector": "mysql",
