@@ -1,0 +1,222 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: microservices
+---
+# RabbitMQ
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbitmq
+  namespace: microservices
+spec:
+  type: ClusterIP
+  ports:
+  - port: 5672
+    targetPort: 5672
+    name: amqp
+  - port: 15672
+    targetPort: 15672
+    name: management
+  selector:
+    app: rabbitmq
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rabbitmq
+  namespace: microservices
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rabbitmq
+  template:
+    metadata:
+      labels:
+        app: rabbitmq
+    spec:
+      containers:
+      - name: rabbitmq
+        image: rabbitmq:3-management
+        ports:
+        - containerPort: 5672
+        - containerPort: 15672
+        env:
+        - name: RABBITMQ_DEFAULT_USER
+          value: "guest"
+        - name: RABBITMQ_DEFAULT_PASS
+          value: "guest"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+---
+# PostgreSQL
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: microservices
+spec:
+  type: ClusterIP
+  ports:
+  - port: 5432
+    targetPort: 5432
+  selector:
+    app: postgres
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-init
+  namespace: microservices
+data:
+  init.sql: |
+    CREATE DATABASE catalog;
+    CREATE DATABASE customer;
+    CREATE DATABASE inventory;
+    CREATE DATABASE order_db;
+    CREATE DATABASE payment;
+    CREATE DATABASE shipping;
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  namespace: microservices
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:11
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_USER
+          value: "postgres"
+        - name: POSTGRES_PASSWORD
+          value: "postgres"
+        volumeMounts:
+        - name: init-script
+          mountPath: /docker-entrypoint-initdb.d
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+      volumes:
+      - name: init-script
+        configMap:
+          name: postgres-init
+---
+# Zipkin
+apiVersion: v1
+kind: Service
+metadata:
+  name: zipkin
+  namespace: microservices
+spec:
+  type: ClusterIP
+  ports:
+  - port: 9411
+    targetPort: 9411
+  selector:
+    app: zipkin
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zipkin
+  namespace: microservices
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: zipkin
+  template:
+    metadata:
+      labels:
+        app: zipkin
+    spec:
+      containers:
+      - name: zipkin
+        image: openzipkin/zipkin:latest
+        ports:
+        - containerPort: 9411
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+---
+# WireMock
+apiVersion: v1
+kind: Service
+metadata:
+  name: wiremock
+  namespace: microservices
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8080
+    targetPort: 8080
+  selector:
+    app: wiremock
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: wiremock-mappings
+  namespace: microservices
+data:
+  wiremock-init: |
+    #!/bin/bash
+    echo "WireMock initialized"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wiremock
+  namespace: microservices
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wiremock
+  template:
+    metadata:
+      labels:
+        app: wiremock
+    spec:
+      containers:
+      - name: wiremock
+        image: wiremock/wiremock:latest
+        ports:
+        - containerPort: 8080
+        args:
+        - "--async-response-enabled=true"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+

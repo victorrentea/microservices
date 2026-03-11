@@ -1,0 +1,804 @@
+---
+# Customer Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: customer
+  namespace: microservices
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8080
+    targetPort: 8080
+  selector:
+    app: customer
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: customer-config
+  namespace: microservices
+data:
+  application.yaml: |
+    server:
+      port: 8080
+    spring:
+      application:
+        name: customer
+      datasource:
+        url: jdbc:postgresql://postgres:5432/customer
+        username: postgres
+        password: postgres
+        driver-class-name: org.postgresql.Driver
+      jpa:
+        hibernate:
+          ddl-auto: update
+        properties:
+          hibernate:
+            dialect: org.hibernate.dialect.PostgreSQLDialect
+    eureka:
+      client:
+        serviceUrl:
+          defaultZone: http://eureka:8761/eureka/
+      instance:
+        prefer-ip-address: true
+    management:
+      endpoints:
+        web:
+          exposure:
+            include: health,metrics,prometheus
+      tracing:
+        sampling:
+          probability: 1.0
+    logging:
+      level:
+        root: INFO
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: customer
+  namespace: microservices
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: customer
+  template:
+    metadata:
+      labels:
+        app: customer
+    spec:
+      containers:
+      - name: customer
+        image: victorrentea/victor:customer-1.0
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - name: config
+          mountPath: /config
+        env:
+        - name: SPRING_CONFIG_LOCATION
+          value: file:/config/application.yaml
+        - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+          value: http://eureka:8761/eureka/
+        - name: SPRING_DATASOURCE_URL
+          value: jdbc:postgresql://postgres:5432/customer
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 40
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 5
+      volumes:
+      - name: config
+        configMap:
+          name: customer-config
+      initContainers:
+      - name: wait-for-postgres
+        image: busybox:1.35
+        command: ['sh', '-c', "until nc -z postgres 5432; do echo waiting for postgres; sleep 2; done"]
+---
+# Catalog Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: catalog
+  namespace: microservices
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8080
+    targetPort: 8080
+  selector:
+    app: catalog
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: catalog-config
+  namespace: microservices
+data:
+  application.yaml: |
+    server:
+      port: 8080
+    spring:
+      application:
+        name: catalog
+      datasource:
+        url: jdbc:postgresql://postgres:5432/catalog
+        username: postgres
+        password: postgres
+        driver-class-name: org.postgresql.Driver
+      jpa:
+        hibernate:
+          ddl-auto: update
+        properties:
+          hibernate:
+            dialect: org.hibernate.dialect.PostgreSQLDialect
+    eureka:
+      client:
+        serviceUrl:
+          defaultZone: http://eureka:8761/eureka/
+      instance:
+        prefer-ip-address: true
+    management:
+      endpoints:
+        web:
+          exposure:
+            include: health,metrics,prometheus
+      tracing:
+        sampling:
+          probability: 1.0
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: catalog
+  namespace: microservices
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: catalog
+  template:
+    metadata:
+      labels:
+        app: catalog
+    spec:
+      containers:
+      - name: catalog
+        image: victorrentea/victor:catalog-1.0
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - name: config
+          mountPath: /config
+        env:
+        - name: SPRING_CONFIG_LOCATION
+          value: file:/config/application.yaml
+        - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+          value: http://eureka:8761/eureka/
+        - name: SPRING_DATASOURCE_URL
+          value: jdbc:postgresql://postgres:5432/catalog
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 40
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 5
+      volumes:
+      - name: config
+        configMap:
+          name: catalog-config
+      initContainers:
+      - name: wait-for-postgres
+        image: busybox:1.35
+        command: ['sh', '-c', "until nc -z postgres 5432; do echo waiting for postgres; sleep 2; done"]
+---
+# Order Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: order
+  namespace: microservices
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8080
+    targetPort: 8080
+  selector:
+    app: order
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: order-config
+  namespace: microservices
+data:
+  application.yaml: |
+    server:
+      port: 8080
+    spring:
+      application:
+        name: order
+      datasource:
+        url: jdbc:postgresql://postgres:5432/order_db
+        username: postgres
+        password: postgres
+        driver-class-name: org.postgresql.Driver
+      jpa:
+        hibernate:
+          ddl-auto: update
+        properties:
+          hibernate:
+            dialect: org.hibernate.dialect.PostgreSQLDialect
+      rabbitmq:
+        host: rabbitmq
+        port: 5672
+        username: guest
+        password: guest
+    eureka:
+      client:
+        serviceUrl:
+          defaultZone: http://eureka:8761/eureka/
+      instance:
+        prefer-ip-address: true
+    management:
+      endpoints:
+        web:
+          exposure:
+            include: health,metrics,prometheus
+      tracing:
+        sampling:
+          probability: 1.0
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order
+  namespace: microservices
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: order
+  template:
+    metadata:
+      labels:
+        app: order
+    spec:
+      containers:
+      - name: order
+        image: victorrentea/victor:order-1.0
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - name: config
+          mountPath: /config
+        env:
+        - name: SPRING_CONFIG_LOCATION
+          value: file:/config/application.yaml
+        - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+          value: http://eureka:8761/eureka/
+        - name: SPRING_DATASOURCE_URL
+          value: jdbc:postgresql://postgres:5432/order_db
+        - name: SPRING_RABBITMQ_HOST
+          value: rabbitmq
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 40
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 5
+      volumes:
+      - name: config
+        configMap:
+          name: order-config
+      initContainers:
+      - name: wait-for-postgres
+        image: busybox:1.35
+        command: ['sh', '-c', "until nc -z postgres 5432; do echo waiting for postgres; sleep 2; done"]
+      - name: wait-for-rabbitmq
+        image: busybox:1.35
+        command: ['sh', '-c', "until nc -z rabbitmq 5672; do echo waiting for rabbitmq; sleep 2; done"]
+---
+# Payment Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: payment
+  namespace: microservices
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8080
+    targetPort: 8080
+  selector:
+    app: payment
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: payment-config
+  namespace: microservices
+data:
+  application.yaml: |
+    server:
+      port: 8080
+    spring:
+      application:
+        name: payment
+      datasource:
+        url: jdbc:postgresql://postgres:5432/payment
+        username: postgres
+        password: postgres
+        driver-class-name: org.postgresql.Driver
+      jpa:
+        hibernate:
+          ddl-auto: update
+        properties:
+          hibernate:
+            dialect: org.hibernate.dialect.PostgreSQLDialect
+      rabbitmq:
+        host: rabbitmq
+        port: 5672
+        username: guest
+        password: guest
+    eureka:
+      client:
+        serviceUrl:
+          defaultZone: http://eureka:8761/eureka/
+      instance:
+        prefer-ip-address: true
+    management:
+      endpoints:
+        web:
+          exposure:
+            include: health,metrics,prometheus
+      tracing:
+        sampling:
+          probability: 1.0
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payment
+  namespace: microservices
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: payment
+  template:
+    metadata:
+      labels:
+        app: payment
+    spec:
+      containers:
+      - name: payment
+        image: victorrentea/victor:payment-1.0
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - name: config
+          mountPath: /config
+        env:
+        - name: SPRING_CONFIG_LOCATION
+          value: file:/config/application.yaml
+        - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+          value: http://eureka:8761/eureka/
+        - name: SPRING_DATASOURCE_URL
+          value: jdbc:postgresql://postgres:5432/payment
+        - name: SPRING_RABBITMQ_HOST
+          value: rabbitmq
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 40
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 5
+      volumes:
+      - name: config
+        configMap:
+          name: payment-config
+      initContainers:
+      - name: wait-for-postgres
+        image: busybox:1.35
+        command: ['sh', '-c', "until nc -z postgres 5432; do echo waiting for postgres; sleep 2; done"]
+      - name: wait-for-rabbitmq
+        image: busybox:1.35
+        command: ['sh', '-c', "until nc -z rabbitmq 5672; do echo waiting for rabbitmq; sleep 2; done"]
+---
+# Shipping Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: shipping
+  namespace: microservices
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8080
+    targetPort: 8080
+  selector:
+    app: shipping
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: shipping-config
+  namespace: microservices
+data:
+  application.yaml: |
+    server:
+      port: 8080
+    spring:
+      application:
+        name: shipping
+      datasource:
+        url: jdbc:postgresql://postgres:5432/shipping
+        username: postgres
+        password: postgres
+        driver-class-name: org.postgresql.Driver
+      jpa:
+        hibernate:
+          ddl-auto: update
+        properties:
+          hibernate:
+            dialect: org.hibernate.dialect.PostgreSQLDialect
+      rabbitmq:
+        host: rabbitmq
+        port: 5672
+        username: guest
+        password: guest
+    eureka:
+      client:
+        serviceUrl:
+          defaultZone: http://eureka:8761/eureka/
+      instance:
+        prefer-ip-address: true
+    management:
+      endpoints:
+        web:
+          exposure:
+            include: health,metrics,prometheus
+      tracing:
+        sampling:
+          probability: 1.0
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shipping
+  namespace: microservices
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: shipping
+  template:
+    metadata:
+      labels:
+        app: shipping
+    spec:
+      containers:
+      - name: shipping
+        image: victorrentea/victor:shipping-1.0
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - name: config
+          mountPath: /config
+        env:
+        - name: SPRING_CONFIG_LOCATION
+          value: file:/config/application.yaml
+        - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+          value: http://eureka:8761/eureka/
+        - name: SPRING_DATASOURCE_URL
+          value: jdbc:postgresql://postgres:5432/shipping
+        - name: SPRING_RABBITMQ_HOST
+          value: rabbitmq
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 40
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 5
+      volumes:
+      - name: config
+        configMap:
+          name: shipping-config
+      initContainers:
+      - name: wait-for-postgres
+        image: busybox:1.35
+        command: ['sh', '-c', "until nc -z postgres 5432; do echo waiting for postgres; sleep 2; done"]
+      - name: wait-for-rabbitmq
+        image: busybox:1.35
+        command: ['sh', '-c', "until nc -z rabbitmq 5672; do echo waiting for rabbitmq; sleep 2; done"]
+---
+# Inventory Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: inventory
+  namespace: microservices
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8080
+    targetPort: 8080
+  selector:
+    app: inventory
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: inventory-config
+  namespace: microservices
+data:
+  application.yaml: |
+    server:
+      port: 8080
+    spring:
+      application:
+        name: inventory
+      datasource:
+        url: jdbc:postgresql://postgres:5432/inventory
+        username: postgres
+        password: postgres
+        driver-class-name: org.postgresql.Driver
+      jpa:
+        hibernate:
+          ddl-auto: update
+        properties:
+          hibernate:
+            dialect: org.hibernate.dialect.PostgreSQLDialect
+    eureka:
+      client:
+        serviceUrl:
+          defaultZone: http://eureka:8761/eureka/
+      instance:
+        prefer-ip-address: true
+    management:
+      endpoints:
+        web:
+          exposure:
+            include: health,metrics,prometheus
+      tracing:
+        sampling:
+          probability: 1.0
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: inventory
+  namespace: microservices
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: inventory
+  template:
+    metadata:
+      labels:
+        app: inventory
+    spec:
+      containers:
+      - name: inventory
+        image: victorrentea/victor:inventory-1.0
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - name: config
+          mountPath: /config
+        env:
+        - name: SPRING_CONFIG_LOCATION
+          value: file:/config/application.yaml
+        - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+          value: http://eureka:8761/eureka/
+        - name: SPRING_DATASOURCE_URL
+          value: jdbc:postgresql://postgres:5432/inventory
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 40
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 5
+      volumes:
+      - name: config
+        configMap:
+          name: inventory-config
+      initContainers:
+      - name: wait-for-postgres
+        image: busybox:1.35
+        command: ['sh', '-c', "until nc -z postgres 5432; do echo waiting for postgres; sleep 2; done"]
+---
+# Notification Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: notification
+  namespace: microservices
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8080
+    targetPort: 8080
+  selector:
+    app: notification
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: notification-config
+  namespace: microservices
+data:
+  application.yaml: |
+    server:
+      port: 8080
+    spring:
+      application:
+        name: notification
+      rabbitmq:
+        host: rabbitmq
+        port: 5672
+        username: guest
+        password: guest
+    eureka:
+      client:
+        serviceUrl:
+          defaultZone: http://eureka:8761/eureka/
+      instance:
+        prefer-ip-address: true
+    management:
+      endpoints:
+        web:
+          exposure:
+            include: health,metrics,prometheus
+      tracing:
+        sampling:
+          probability: 1.0
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notification
+  namespace: microservices
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: notification
+  template:
+    metadata:
+      labels:
+        app: notification
+    spec:
+      containers:
+      - name: notification
+        image: victorrentea/victor:notification-1.0
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - name: config
+          mountPath: /config
+        env:
+        - name: SPRING_CONFIG_LOCATION
+          value: file:/config/application.yaml
+        - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+          value: http://eureka:8761/eureka/
+        - name: SPRING_RABBITMQ_HOST
+          value: rabbitmq
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 40
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 5
+      volumes:
+      - name: config
+        configMap:
+          name: notification-config
+      initContainers:
+      - name: wait-for-rabbitmq
+        image: busybox:1.35
+        command: ['sh', '-c', "until nc -z rabbitmq 5672; do echo waiting for rabbitmq; sleep 2; done"]

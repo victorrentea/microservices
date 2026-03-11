@@ -1,0 +1,224 @@
+---
+# Eureka Service Registry
+apiVersion: v1
+kind: Service
+metadata:
+  name: eureka
+  namespace: microservices
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8761
+    targetPort: 8761
+  selector:
+    app: eureka
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: eureka-config
+  namespace: microservices
+data:
+  application.yaml: |
+    server:
+      port: 8761
+    eureka:
+      instance:
+        hostname: eureka
+        prefer-ip-address: true
+      client:
+        registerWithEureka: false
+        fetchRegistry: false
+        serviceUrl:
+          defaultZone: http://eureka:8761/eureka/
+    spring:
+      application:
+        name: eureka
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: eureka
+  namespace: microservices
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: eureka
+  template:
+    metadata:
+      labels:
+        app: eureka
+    spec:
+      containers:
+      - name: eureka
+        image: victorrentea/victor:eureka-1.0
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8761
+        volumeMounts:
+        - name: config
+          mountPath: /config
+        env:
+        - name: SPRING_CONFIG_LOCATION
+          value: file:/config/application.yaml
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8761
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8761
+          initialDelaySeconds: 20
+          periodSeconds: 5
+      volumes:
+      - name: config
+        configMap:
+          name: eureka-config
+---
+# API Gateway
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-gateway
+  namespace: microservices
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+    targetPort: 8080
+    protocol: TCP
+  selector:
+    app: api-gateway
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: api-gateway-config
+  namespace: microservices
+data:
+  application.yaml: |
+    server:
+      port: 8080
+    spring:
+      application:
+        name: api-gateway
+      cloud:
+        gateway:
+          routes:
+          - id: customer-service
+            uri: http://customer:8080
+            predicates:
+            - Path=/api/customers/**
+            filters:
+            - RewritePath=/api/customers/(?<path>.*),/$\{path}
+          - id: catalog-service
+            uri: http://catalog:8080
+            predicates:
+            - Path=/api/catalog/**
+            filters:
+            - RewritePath=/api/catalog/(?<path>.*),/$\{path}
+          - id: order-service
+            uri: http://order:8080
+            predicates:
+            - Path=/api/orders/**
+            filters:
+            - RewritePath=/api/orders/(?<path>.*),/$\{path}
+          - id: inventory-service
+            uri: http://inventory:8080
+            predicates:
+            - Path=/api/inventory/**
+            filters:
+            - RewritePath=/api/inventory/(?<path>.*),/$\{path}
+          - id: payment-service
+            uri: http://payment:8080
+            predicates:
+            - Path=/api/payments/**
+            filters:
+            - RewritePath=/api/payments/(?<path>.*),/$\{path}
+          - id: shipping-service
+            uri: http://shipping:8080
+            predicates:
+            - Path=/api/shipping/**
+            filters:
+            - RewritePath=/api/shipping/(?<path>.*),/$\{path}
+          - id: notification-service
+            uri: http://notification:8080
+            predicates:
+            - Path=/api/notifications/**
+            filters:
+            - RewritePath=/api/notifications/(?<path>.*),/$\{path}
+    eureka:
+      client:
+        serviceUrl:
+          defaultZone: http://eureka:8761/eureka/
+      instance:
+        prefer-ip-address: true
+    management:
+      endpoints:
+        web:
+          exposure:
+            include: health,metrics,prometheus
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway
+  namespace: microservices
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api-gateway
+  template:
+    metadata:
+      labels:
+        app: api-gateway
+    spec:
+      containers:
+      - name: api-gateway
+        image: victorrentea/victor:api-gateway-1.0
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - name: config
+          mountPath: /config
+        env:
+        - name: SPRING_CONFIG_LOCATION
+          value: file:/config/application.yaml
+        - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+          value: http://eureka:8761/eureka/
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 20
+          periodSeconds: 5
+      volumes:
+      - name: config
+        configMap:
+          name: api-gateway-config
