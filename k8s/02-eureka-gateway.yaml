@@ -53,7 +53,7 @@ spec:
       containers:
       - name: eureka
         image: victorrentea/victor:eureka-1.0
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8761
         volumeMounts:
@@ -116,48 +116,34 @@ data:
       cloud:
         gateway:
           routes:
-          - id: customer-service
-            uri: http://customer:8080
-            predicates:
-            - Path=/api/customers/**
-            filters:
-            - RewritePath=/api/customers/(?<path>.*),/$\{path}
-          - id: catalog-service
-            uri: http://catalog:8080
-            predicates:
-            - Path=/api/catalog/**
-            filters:
-            - RewritePath=/api/catalog/(?<path>.*),/$\{path}
           - id: order-service
             uri: http://order:8080
             predicates:
-            - Path=/api/orders/**
-            filters:
-            - RewritePath=/api/orders/(?<path>.*),/$\{path}
-          - id: inventory-service
-            uri: http://inventory:8080
-            predicates:
-            - Path=/api/inventory/**
-            filters:
-            - RewritePath=/api/inventory/(?<path>.*),/$\{path}
+            - Path=/order/**,/order
           - id: payment-service
             uri: http://payment:8080
             predicates:
-            - Path=/api/payments/**
-            filters:
-            - RewritePath=/api/payments/(?<path>.*),/$\{path}
+            - Path=/payment/**
           - id: shipping-service
             uri: http://shipping:8080
             predicates:
-            - Path=/api/shipping/**
-            filters:
-            - RewritePath=/api/shipping/(?<path>.*),/$\{path}
+            - Path=/shipping/**
+          - id: customer-service
+            uri: http://customer:8080
+            predicates:
+            - Path=/customer/**
+          - id: catalog-service
+            uri: http://catalog:8080
+            predicates:
+            - Path=/catalog/**
+          - id: inventory-service
+            uri: http://inventory:8080
+            predicates:
+            - Path=/inventory/**
           - id: notification-service
             uri: http://notification:8080
             predicates:
-            - Path=/api/notifications/**
-            filters:
-            - RewritePath=/api/notifications/(?<path>.*),/$\{path}
+            - Path=/notification/**
     eureka:
       client:
         serviceUrl:
@@ -188,7 +174,7 @@ spec:
       containers:
       - name: api-gateway
         image: victorrentea/victor:api-gateway-1.0
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8080
         volumeMounts:

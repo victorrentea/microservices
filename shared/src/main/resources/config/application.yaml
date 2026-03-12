@@ -13,9 +13,8 @@ management:
     env.enabled: true
     app.swagger: /swagger-ui.html
 
-#add traceID to log
-logging.pattern.level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
-management.tracing.sampling.probability: 1.0
+#add traceID to log (placeholder - will be injected by OTel agent at runtime)
+logging.pattern.level: "%5p [${spring.application.name:},%X{trace_id:-},%X{span_id:-}]"
 
 logging.level:
   victor: DEBUG

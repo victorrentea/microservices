@@ -59,13 +59,7 @@ kubectl port-forward -n microservices svc/rabbitmq 15672:15672
 # Access: http://localhost:15672 (guest:guest)
 ```
 
-**Terminal 4: Zipkin Traces**
-```bash
-kubectl port-forward -n microservices svc/zipkin 9411:9411
-# Access: http://localhost:9411
-```
-
-**Terminal 5: PostgreSQL**
+**Terminal 4: PostgreSQL**
 ```bash
 kubectl port-forward -n microservices svc/postgres 5432:5432
 # Connect: psql -h localhost -U postgres
@@ -106,10 +100,6 @@ curl http://localhost:8080/actuator/gateway/routes
 - Login: guest / guest
 - Check connections and queues
 
-### 5. View Distributed Traces
-- Open http://localhost:9411 in browser
-- Search for recent traces
-- Click on traces to see flow
 
 ## Common Tasks
 
@@ -212,7 +202,6 @@ See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for more issues.
 ### Infrastructure
 - **postgres** - Database
 - **rabbitmq** - Message broker
-- **zipkin** - Distributed tracing
 - **wiremock** - API mocking
 
 ## Next Steps
@@ -224,9 +213,7 @@ See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for more issues.
      -d '{"name":"John","email":"john@example.com"}'
    ```
 
-2. **View traces in Zipkin**
-   - After making API calls
-   - Traces show up in Zipkin UI
+2. **View Eureka Dashboard** at http://localhost:8761
 
 3. **Monitor with Prometheus**
    - Port forward to services

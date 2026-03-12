@@ -72,7 +72,7 @@ spec:
       containers:
       - name: customer
         image: victorrentea/victor:customer-1.0
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8080
         volumeMounts:
@@ -87,7 +87,7 @@ spec:
           value: jdbc:postgresql://postgres:5432/customer
         resources:
           requests:
-            memory: "512Mi"
+            memory: "256Mi"
             cpu: "250m"
           limits:
             memory: "1Gi"
@@ -150,6 +150,11 @@ data:
         properties:
           hibernate:
             dialect: org.hibernate.dialect.PostgreSQLDialect
+      rabbitmq:
+        host: rabbitmq
+        port: 5672
+        username: guest
+        password: guest
     eureka:
       client:
         serviceUrl:
@@ -161,9 +166,6 @@ data:
         web:
           exposure:
             include: health,metrics,prometheus
-      tracing:
-        sampling:
-          probability: 1.0
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -183,7 +185,7 @@ spec:
       containers:
       - name: catalog
         image: victorrentea/victor:catalog-1.0
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8080
         volumeMounts:
@@ -198,7 +200,7 @@ spec:
           value: jdbc:postgresql://postgres:5432/catalog
         resources:
           requests:
-            memory: "512Mi"
+            memory: "256Mi"
             cpu: "250m"
           limits:
             memory: "1Gi"
@@ -299,7 +301,7 @@ spec:
       containers:
       - name: order
         image: victorrentea/victor:order-1.0
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8080
         volumeMounts:
@@ -316,7 +318,7 @@ spec:
           value: rabbitmq
         resources:
           requests:
-            memory: "512Mi"
+            memory: "256Mi"
             cpu: "250m"
           limits:
             memory: "1Gi"
@@ -420,7 +422,7 @@ spec:
       containers:
       - name: payment
         image: victorrentea/victor:payment-1.0
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8080
         volumeMounts:
@@ -437,7 +439,7 @@ spec:
           value: rabbitmq
         resources:
           requests:
-            memory: "512Mi"
+            memory: "256Mi"
             cpu: "250m"
           limits:
             memory: "1Gi"
@@ -541,7 +543,7 @@ spec:
       containers:
       - name: shipping
         image: victorrentea/victor:shipping-1.0
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8080
         volumeMounts:
@@ -558,7 +560,7 @@ spec:
           value: rabbitmq
         resources:
           requests:
-            memory: "512Mi"
+            memory: "256Mi"
             cpu: "250m"
           limits:
             memory: "1Gi"
@@ -624,6 +626,11 @@ data:
         properties:
           hibernate:
             dialect: org.hibernate.dialect.PostgreSQLDialect
+      rabbitmq:
+        host: rabbitmq
+        port: 5672
+        username: guest
+        password: guest
     eureka:
       client:
         serviceUrl:
@@ -635,9 +642,6 @@ data:
         web:
           exposure:
             include: health,metrics,prometheus
-      tracing:
-        sampling:
-          probability: 1.0
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -657,7 +661,7 @@ spec:
       containers:
       - name: inventory
         image: victorrentea/victor:inventory-1.0
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8080
         volumeMounts:
@@ -672,7 +676,7 @@ spec:
           value: jdbc:postgresql://postgres:5432/inventory
         resources:
           requests:
-            memory: "512Mi"
+            memory: "256Mi"
             cpu: "250m"
           limits:
             memory: "1Gi"
@@ -762,7 +766,7 @@ spec:
       containers:
       - name: notification
         image: victorrentea/victor:notification-1.0
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8080
         volumeMounts:
@@ -777,7 +781,7 @@ spec:
           value: rabbitmq
         resources:
           requests:
-            memory: "512Mi"
+            memory: "256Mi"
             cpu: "250m"
           limits:
             memory: "1Gi"

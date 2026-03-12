@@ -1,0 +1,5 @@
+
+
+docker build -t inventory:1.0 .
+minikube image load victorrentea/inventory:1.0
+kubectl -n microservices rollout restart deployment inventory

@@ -24,7 +24,3 @@ services:
     ports:
         - "9999:8080"
 
-  zipkin:
-    image: openzipkin/zipkin
-    ports:
-      - "9411:9411" # http://localhost:9411/zipkin/

@@ -36,11 +36,6 @@
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-openfeign</artifactId>
 		</dependency>
-		<dependency>
-			<!-- propagate TraceID over @FeignClient -->
-			<groupId>io.github.openfeign</groupId>
-			<artifactId>feign-micrometer</artifactId>
-		</dependency>
 
 		<dependency>
 			<!-- http://localhost:<port>/swagger-ui.html -->

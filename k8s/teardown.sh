@@ -1,53 +1,21 @@
-#!/bin/bash
+#!/usr/bin/env bash
+# Remove all microservices resources from Docker Desktop Kubernetes.
+# Usage: ./teardown.sh
 
-# K8s Microservices Teardown Script
-# This script removes the kind cluster and local registry
+set -euo pipefail
 
-set -e
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+NAMESPACE="microservices"
 
-CLUSTER_NAME="microservices"
-REGISTRY_NAME="local-registry"
-
-# Colors for output
-RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
+NC='\033[0m'
 
-echo -e "${YELLOW}=== K8s Microservices Teardown ===${NC}"
+log() { printf "\n${YELLOW}==> %s${NC}\n" "$1"; }
+ok()  { printf "${GREEN}✓ %s${NC}\n" "$1"; }
 
-# Delete kind cluster
-delete_cluster() {
-    echo -e "${YELLOW}Deleting kind cluster...${NC}"
+log "Deleting namespace '$NAMESPACE' and all its resources"
+kubectl delete namespace "$NAMESPACE" --ignore-not-found
+ok "Namespace '$NAMESPACE' deleted"
 
-    if kind get clusters | grep -q "^$CLUSTER_NAME$"; then
-        kind delete cluster --name=$CLUSTER_NAME
-        echo -e "${GREEN}✓ Cluster deleted${NC}"
-    else
-        echo -e "${YELLOW}Cluster not found${NC}"
-    fi
-}
-
-# Stop and remove registry
-delete_registry() {
-    echo -e "${YELLOW}Stopping Docker registry...${NC}"
-
-    if [ "$(docker inspect -f '{{.State.Running}}' $REGISTRY_NAME 2>/dev/null)" == "true" ]; then
-        docker stop $REGISTRY_NAME
-        docker rm $REGISTRY_NAME
-        echo -e "${GREEN}✓ Registry stopped and removed${NC}"
-    else
-        echo -e "${YELLOW}Registry not running${NC}"
-    fi
-}
-
-# Main execution
-main() {
-    delete_cluster
-    delete_registry
-
-    echo -e "${GREEN}=== Teardown complete ===${NC}"
-}
-
-main
-
+printf "\n${GREEN}=== Teardown complete ===${NC}\n"
