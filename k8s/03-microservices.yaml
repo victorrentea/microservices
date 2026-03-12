@@ -21,7 +21,7 @@ metadata:
 data:
   SERVER_PORT: "8080"
   SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/customer
-  EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka:8761/eureka/
+  SPRING_APPLICATION_JSON: '{"eureka":{"client":{"serviceUrl":{"defaultZone":"http://eureka:8761/eureka/"}}}}'
   EUREKA_INSTANCE_PREFER_IP_ADDRESS: "true"
   JAVA_TOOL_OPTIONS: "-javaagent:/otel-agent/opentelemetry-javaagent.jar -XX:TieredStopAtLevel=1 -Xms64m -Xmx512m -XX:+UseContainerSupport"
   OTEL_EXPORTER_OTLP_ENDPOINT: "http://lgtm:4318"
@@ -126,7 +126,7 @@ data:
   SERVER_PORT: "8080"
   SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/catalog
   SPRING_RABBITMQ_HOST: rabbitmq
-  EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka:8761/eureka/
+  SPRING_APPLICATION_JSON: '{"eureka":{"client":{"serviceUrl":{"defaultZone":"http://eureka:8761/eureka/"}}}}'
   EUREKA_INSTANCE_PREFER_IP_ADDRESS: "true"
   JAVA_TOOL_OPTIONS: "-javaagent:/otel-agent/opentelemetry-javaagent.jar -XX:TieredStopAtLevel=1 -Xms64m -Xmx512m -XX:+UseContainerSupport"
   OTEL_EXPORTER_OTLP_ENDPOINT: "http://lgtm:4318"
@@ -231,7 +231,7 @@ data:
   SERVER_PORT: "8080"
   SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/order_db
   SPRING_RABBITMQ_HOST: rabbitmq
-  EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka:8761/eureka/
+  SPRING_APPLICATION_JSON: '{"eureka":{"client":{"serviceUrl":{"defaultZone":"http://eureka:8761/eureka/"}}}}'
   EUREKA_INSTANCE_PREFER_IP_ADDRESS: "true"
   JAVA_TOOL_OPTIONS: "-javaagent:/otel-agent/opentelemetry-javaagent.jar -XX:TieredStopAtLevel=1 -Xms64m -Xmx512m -XX:+UseContainerSupport"
   OTEL_EXPORTER_OTLP_ENDPOINT: "http://lgtm:4318"
@@ -339,7 +339,7 @@ data:
   SERVER_PORT: "8080"
   SPRING_RABBITMQ_HOST: rabbitmq
   SPRING_CLOUD_OPENFEIGN_CLIENT_CONFIG_PAYMENT-GATEWAY_URL: http://wiremock:8080
-  EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka:8761/eureka/
+  SPRING_APPLICATION_JSON: '{"eureka":{"client":{"serviceUrl":{"defaultZone":"http://eureka:8761/eureka/"}}}}'
   EUREKA_INSTANCE_PREFER_IP_ADDRESS: "true"
   JAVA_TOOL_OPTIONS: "-javaagent:/otel-agent/opentelemetry-javaagent.jar -XX:TieredStopAtLevel=1 -Xms64m -Xmx512m -XX:+UseContainerSupport"
   OTEL_EXPORTER_OTLP_ENDPOINT: "http://lgtm:4318"
@@ -444,7 +444,7 @@ data:
   SERVER_PORT: "8080"
   SPRING_RABBITMQ_HOST: rabbitmq
   SPRING_CLOUD_OPENFEIGN_CLIENT_CONFIG_SHIPPING-PROVIDER_URL: http://wiremock:8080
-  EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka:8761/eureka/
+  SPRING_APPLICATION_JSON: '{"eureka":{"client":{"serviceUrl":{"defaultZone":"http://eureka:8761/eureka/"}}}}'
   EUREKA_INSTANCE_PREFER_IP_ADDRESS: "true"
   JAVA_TOOL_OPTIONS: "-javaagent:/otel-agent/opentelemetry-javaagent.jar -XX:TieredStopAtLevel=1 -Xms64m -Xmx512m -XX:+UseContainerSupport"
   OTEL_EXPORTER_OTLP_ENDPOINT: "http://lgtm:4318"
@@ -549,7 +549,7 @@ data:
   SERVER_PORT: "8080"
   SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/inventory
   SPRING_RABBITMQ_HOST: rabbitmq
-  EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka:8761/eureka/
+  SPRING_APPLICATION_JSON: '{"eureka":{"client":{"serviceUrl":{"defaultZone":"http://eureka:8761/eureka/"}}}}'
   EUREKA_INSTANCE_PREFER_IP_ADDRESS: "true"
   JAVA_TOOL_OPTIONS: "-javaagent:/otel-agent/opentelemetry-javaagent.jar -XX:TieredStopAtLevel=1 -Xms64m -Xmx512m -XX:+UseContainerSupport"
   OTEL_EXPORTER_OTLP_ENDPOINT: "http://lgtm:4318"
@@ -656,7 +656,7 @@ metadata:
 data:
   SERVER_PORT: "8080"
   SPRING_RABBITMQ_HOST: rabbitmq
-  EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka:8761/eureka/
+  SPRING_APPLICATION_JSON: '{"eureka":{"client":{"serviceUrl":{"defaultZone":"http://eureka:8761/eureka/"}}}}'
   EUREKA_INSTANCE_PREFER_IP_ADDRESS: "true"
   JAVA_TOOL_OPTIONS: "-javaagent:/otel-agent/opentelemetry-javaagent.jar -XX:TieredStopAtLevel=1 -Xms64m -Xmx512m -XX:+UseContainerSupport"
   OTEL_EXPORTER_OTLP_ENDPOINT: "http://lgtm:4318"
