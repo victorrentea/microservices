@@ -116,34 +116,79 @@ data:
       cloud:
         gateway:
           routes:
-          - id: order-service
+          # Legacy direct paths used by tests.sh
+          - id: order-direct
             uri: http://order:8080
             predicates:
-            - Path=/order/**,/order
-          - id: payment-service
+            - Path=/order,/order/**
+          - id: payment-direct
             uri: http://payment:8080
             predicates:
             - Path=/payment/**
-          - id: shipping-service
+          - id: shipping-direct
             uri: http://shipping:8080
             predicates:
             - Path=/shipping/**
-          - id: customer-service
+          - id: customer-direct
             uri: http://customer:8080
             predicates:
             - Path=/customer/**
-          - id: catalog-service
+          - id: catalog-direct
             uri: http://catalog:8080
             predicates:
             - Path=/catalog/**
-          - id: inventory-service
+          - id: inventory-direct
             uri: http://inventory:8080
             predicates:
             - Path=/inventory/**
-          - id: notification-service
+          - id: notification-direct
             uri: http://notification:8080
             predicates:
             - Path=/notification/**
+
+          # /api/* paths for external-facing APIs
+          - id: customer-api
+            uri: http://customer:8080
+            predicates:
+            - Path=/api/customers/**
+            filters:
+            - RewritePath=/api/customers/(?<path>.*),/$\{path}
+          - id: catalog-api
+            uri: http://catalog:8080
+            predicates:
+            - Path=/api/catalog/**
+            filters:
+            - RewritePath=/api/catalog/(?<path>.*),/$\{path}
+          - id: order-api
+            uri: http://order:8080
+            predicates:
+            - Path=/api/orders/**
+            filters:
+            - RewritePath=/api/orders/(?<path>.*),/$\{path}
+          - id: inventory-api
+            uri: http://inventory:8080
+            predicates:
+            - Path=/api/inventory/**
+            filters:
+            - RewritePath=/api/inventory/(?<path>.*),/$\{path}
+          - id: payment-api
+            uri: http://payment:8080
+            predicates:
+            - Path=/api/payments/**
+            filters:
+            - RewritePath=/api/payments/(?<path>.*),/$\{path}
+          - id: shipping-api
+            uri: http://shipping:8080
+            predicates:
+            - Path=/api/shipping/**
+            filters:
+            - RewritePath=/api/shipping/(?<path>.*),/$\{path}
+          - id: notification-api
+            uri: http://notification:8080
+            predicates:
+            - Path=/api/notifications/**
+            filters:
+            - RewritePath=/api/notifications/(?<path>.*),/$\{path}
     eureka:
       client:
         serviceUrl:

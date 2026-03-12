@@ -8,6 +8,7 @@ import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import victor.training.ms.shared.BackInStockEvent;
 import victor.training.ms.shared.OutOfStockEvent;
@@ -31,11 +32,26 @@ public class InventoryApp {
     reserveStockService.reserveStock(orderId, items);
   }
 
+  @Transactional
   @EventListener(ApplicationStartedEvent.class)
   void initialData() {
-    stockRepo.save(new Stock()
-        .productId(1L)
-        .items(20));
+    List<Stock> existing = stockRepo.findAllByProductIdOrderByIdAsc(1L);
+    if (existing.isEmpty()) {
+      stockRepo.save(new Stock()
+          .productId(1L)
+          .items(20));
+      return;
+    }
+
+    Stock primary = existing.get(0);
+    int totalItems = existing.stream().mapToInt(Stock::items).sum();
+    primary.items(totalItems);
+    stockRepo.save(primary);
+
+    if (existing.size() > 1) {
+      stockRepo.deleteAll(existing.subList(1, existing.size()));
+      log.warn("Collapsed {} duplicate stock rows for productId=1 into stockId={} with items={}", existing.size() - 1, primary.id(), totalItems);
+    }
   }
 
   private final StreamBridge streamBridge;
