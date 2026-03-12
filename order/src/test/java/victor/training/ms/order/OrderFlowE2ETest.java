@@ -10,6 +10,10 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
@@ -35,11 +39,20 @@ class OrderFlowE2ETest {
     @Test
     void fullOrderFlow() throws Exception {
         // Preflight: avoid flakiness while services are still rolling or re-registering in Eureka.
-        awaitEndpointUp("/actuator/health", STARTUP_TIMEOUT); // gateway
-        awaitEndpointUp("/api/orders/actuator/health", STARTUP_TIMEOUT);
-        awaitEndpointUp("/api/inventory/actuator/health", STARTUP_TIMEOUT);
-        awaitEndpointUp("/api/payments/actuator/health", STARTUP_TIMEOUT);
-        awaitEndpointUp("/api/shipping/actuator/health", STARTUP_TIMEOUT);
+        // Run all health checks in parallel to minimize wait time.
+        List<String> endpoints = List.of(
+                "/actuator/health",         // gateway
+                "/api/orders/actuator/health",
+                "/api/inventory/actuator/health",
+                "/api/payments/actuator/health",
+                "/api/shipping/actuator/health"
+        );
+        try (ExecutorService pool = Executors.newFixedThreadPool(endpoints.size())) {
+            List<Future<Void>> futures = endpoints.stream()
+                    .<Future<Void>>map(ep -> pool.submit(() -> { awaitEndpointUp(ep, STARTUP_TIMEOUT); return null; }))
+                    .toList();
+            for (Future<Void> f : futures) f.get();
+        }
 
         // ── 1. Place order ────────────────────────────────────────────────────────
         String placeOrderBody = """
