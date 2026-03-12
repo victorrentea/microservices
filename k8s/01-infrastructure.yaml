@@ -144,9 +144,33 @@ metadata:
   name: wiremock-mappings
   namespace: microservices
 data:
-  wiremock-init: |
-    #!/bin/bash
-    echo "WireMock initialized"
+  request-payment.json: |
+    {
+      "request": {
+        "method": "GET",
+        "urlPathPattern": "/get-payment-link.*"
+      },
+      "response": {
+        "status": 200,
+        "body": "https://payment-link",
+        "fixedDelayMilliseconds": 20
+      }
+    }
+  request-shipment.json: |
+    {
+      "request": {
+        "method": "POST",
+        "urlPathPattern": "/create-shipping.*"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "text/plain"
+        },
+        "body": "trackingNumber",
+        "fixedDelayMilliseconds": 4000
+      }
+    }
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -170,6 +194,9 @@ spec:
         - containerPort: 8080
         args:
         - "--async-response-enabled=true"
+        volumeMounts:
+        - name: mappings
+          mountPath: /home/wiremock/mappings
         resources:
           requests:
             memory: "256Mi"
@@ -177,4 +204,8 @@ spec:
           limits:
             memory: "512Mi"
             cpu: "500m"
+      volumes:
+      - name: mappings
+        configMap:
+          name: wiremock-mappings
 

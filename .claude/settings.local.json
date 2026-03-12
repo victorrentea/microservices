@@ -3,7 +3,16 @@
     "allow": [
       "Bash(mvn --version)",
       "Bash(java -version 2>&1)",
-      "Bash(ls -d /Users/victorrentea/workspace/microservices/*/ | grep -v \".git\\\\|.idea\\\\|.serena\\\\|.github\\\\|target\\\\|wiremock\\\\|k8s\" | xargs -I {} basename {})"
+      "Bash(ls -d /Users/victorrentea/workspace/microservices/*/ | grep -v \".git\\\\|.idea\\\\|.serena\\\\|.github\\\\|target\\\\|wiremock\\\\|k8s\" | xargs -I {} basename {})",
+      "Bash(mvn -pl order test -Dtest=OrderFlowE2ETest 2>&1)",
+      "Bash(kubectl logs:*)",
+      "Bash(kubectl rollout:*)",
+      "Bash(kubectl get:*)",
+      "Bash(kubectl exec:*)",
+      "Bash(kubectl delete:*)",
+      "Bash(claude mcp:*)",
+      "Bash(node --version && npm --version 2>&1)",
+      "Bash(npm install:*)"
     ]
   }
 }
