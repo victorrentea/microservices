@@ -1,6 +1,11 @@
 server.port: 8083
 spring.application.name: inventory
 
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/inventory
+    username: postgres
+    password: postgres
 spring.cloud.function.definition: onOrderStatusChangedEvent
 spring.cloud.stream.bindings:
   onOrderStatusChangedEvent-in-0:

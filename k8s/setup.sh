@@ -56,7 +56,6 @@ kubectl create configmap wiremock-mappings \
   --from-file="$PROJECT_ROOT/wiremock/mappings/" \
   -n "$NAMESPACE" --dry-run=client -o yaml | kubectl apply -f -
 kubectl apply -f "$SCRIPT_DIR/02-eureka-gateway.yaml"
-kubectl apply -f "$SCRIPT_DIR/04-lgtm.yaml"
 kubectl apply -f "$SCRIPT_DIR/05-otel-agent.yaml"
 kubectl apply -f "$SCRIPT_DIR/03-microservices.yaml"
 ok "Manifests applied"

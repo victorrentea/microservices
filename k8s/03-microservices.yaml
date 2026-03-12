@@ -19,40 +19,22 @@ metadata:
   name: customer-config
   namespace: microservices
 data:
-  application.yaml: |
-    server:
-      port: 8080
-    spring:
-      application:
-        name: customer
-      datasource:
-        url: jdbc:postgresql://postgres:5432/customer
-        username: postgres
-        password: postgres
-        driver-class-name: org.postgresql.Driver
-      jpa:
-        hibernate:
-          ddl-auto: update
-        properties:
-          hibernate:
-            dialect: org.hibernate.dialect.PostgreSQLDialect
-    eureka:
-      client:
-        serviceUrl:
-          defaultZone: http://eureka:8761/eureka/
-      instance:
-        prefer-ip-address: true
-    management:
-      endpoints:
-        web:
-          exposure:
-            include: health,metrics,prometheus
-      tracing:
-        sampling:
-          probability: 1.0
-    logging:
-      level:
-        root: INFO
+  SERVER_PORT: "8080"
+  SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/customer
+  EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka:8761/eureka/
+  EUREKA_INSTANCE_PREFER_IP_ADDRESS: "true"
+  JAVA_TOOL_OPTIONS: "-javaagent:/otel-agent/opentelemetry-javaagent.jar -XX:TieredStopAtLevel=1 -Xms64m -Xmx512m -XX:+UseContainerSupport"
+  OTEL_EXPORTER_OTLP_ENDPOINT: "http://lgtm:4318"
+  OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
+  OTEL_PROPAGATORS: "tracecontext,baggage"
+  OTEL_SERVICE_NAME: "customer"
+  OTEL_RESOURCE_ATTRIBUTES: "deployment.environment=kubernetes"
+  OTEL_LOGS_EXPORTER: "otlp"
+  OTEL_METRICS_EXPORTER: "otlp"
+  OTEL_TRACES_EXPORTER: "otlp"
+  OTEL_INSTRUMENTATION_LOGBACK_APPENDER_ENABLED: "true"
+  OTEL_INSTRUMENTATION_LOGBACK_MDC_ENABLED: "true"
+  OTEL_INSTRUMENTATION_JDBC_ENABLED: "true"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -81,43 +63,11 @@ spec:
         ports:
         - containerPort: 8080
         volumeMounts:
-        - name: config
-          mountPath: /config
         - name: otel-agent
           mountPath: /otel-agent
-        env:
-        - name: SPRING_CONFIG_LOCATION
-          value: file:/config/application.yaml
-        - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
-          value: http://eureka:8761/eureka/
-        - name: SPRING_DATASOURCE_URL
-          value: jdbc:postgresql://postgres:5432/customer
-        - name: JAVA_TOOL_OPTIONS
-          value: "-javaagent:/otel-agent/opentelemetry-javaagent.jar -XX:TieredStopAtLevel=1 -Xms64m -Xmx512m -XX:+UseContainerSupport"
-        - name: OTEL_EXPORTER_OTLP_ENDPOINT
-          value: "http://lgtm:4318"
-        - name: OTEL_EXPORTER_OTLP_PROTOCOL
-          value: "http/protobuf"
-        - name: OTEL_PROPAGATORS
-          value: "tracecontext,baggage"
-        - name: OTEL_SERVICE_NAME
-          value: "customer"
-        - name: OTEL_RESOURCE_ATTRIBUTES
-          value: "deployment.environment=kubernetes"
-        - name: LOGGING_PATTERN_LEVEL
-          value: "%5p [${spring.application.name:},%X{trace_id:-},%X{span_id:-}]"
-        - name: OTEL_LOGS_EXPORTER
-          value: "otlp"
-        - name: OTEL_METRICS_EXPORTER
-          value: "otlp"
-        - name: OTEL_TRACES_EXPORTER
-          value: "otlp"
-        - name: OTEL_INSTRUMENTATION_LOGBACK_APPENDER_ENABLED
-          value: "true"
-        - name: OTEL_INSTRUMENTATION_LOGBACK_MDC_ENABLED
-          value: "true"
-        - name: OTEL_INSTRUMENTATION_JDBC_ENABLED
-          value: "true"
+        envFrom:
+        - configMapRef:
+            name: customer-config
         resources:
           requests:
             memory: "128Mi"
@@ -140,9 +90,6 @@ spec:
           periodSeconds: 3
           failureThreshold: 10
       volumes:
-      - name: config
-        configMap:
-          name: customer-config
       - name: otel-agent
         emptyDir: {}
       initContainers:
@@ -176,39 +123,23 @@ metadata:
   name: catalog-config
   namespace: microservices
 data:
-  application.yaml: |
-    server:
-      port: 8080
-    spring:
-      application:
-        name: catalog
-      datasource:
-        url: jdbc:postgresql://postgres:5432/catalog
-        username: postgres
-        password: postgres
-        driver-class-name: org.postgresql.Driver
-      jpa:
-        hibernate:
-          ddl-auto: update
-        properties:
-          hibernate:
-            dialect: org.hibernate.dialect.PostgreSQLDialect
-      rabbitmq:
-        host: rabbitmq
-        port: 5672
-        username: guest
-        password: guest
-    eureka:
-      client:
-        serviceUrl:
-          defaultZone: http://eureka:8761/eureka/
-      instance:
-        prefer-ip-address: true
-    management:
-      endpoints:
-        web:
-          exposure:
-            include: health,metrics,prometheus
+  SERVER_PORT: "8080"
+  SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/catalog
+  SPRING_RABBITMQ_HOST: rabbitmq
+  EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka:8761/eureka/
+  EUREKA_INSTANCE_PREFER_IP_ADDRESS: "true"
+  JAVA_TOOL_OPTIONS: "-javaagent:/otel-agent/opentelemetry-javaagent.jar -XX:TieredStopAtLevel=1 -Xms64m -Xmx512m -XX:+UseContainerSupport"
+  OTEL_EXPORTER_OTLP_ENDPOINT: "http://lgtm:4318"
+  OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
+  OTEL_PROPAGATORS: "tracecontext,baggage"
+  OTEL_SERVICE_NAME: "catalog"
+  OTEL_RESOURCE_ATTRIBUTES: "deployment.environment=kubernetes"
+  OTEL_LOGS_EXPORTER: "otlp"
+  OTEL_METRICS_EXPORTER: "otlp"
+  OTEL_TRACES_EXPORTER: "otlp"
+  OTEL_INSTRUMENTATION_LOGBACK_APPENDER_ENABLED: "true"
+  OTEL_INSTRUMENTATION_LOGBACK_MDC_ENABLED: "true"
+  OTEL_INSTRUMENTATION_JDBC_ENABLED: "true"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -237,43 +168,11 @@ spec:
         ports:
         - containerPort: 8080
         volumeMounts:
-        - name: config
-          mountPath: /config
         - name: otel-agent
           mountPath: /otel-agent
-        env:
-        - name: SPRING_CONFIG_LOCATION
-          value: file:/config/application.yaml
-        - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
-          value: http://eureka:8761/eureka/
-        - name: SPRING_DATASOURCE_URL
-          value: jdbc:postgresql://postgres:5432/catalog
-        - name: JAVA_TOOL_OPTIONS
-          value: "-javaagent:/otel-agent/opentelemetry-javaagent.jar -XX:TieredStopAtLevel=1 -Xms64m -Xmx512m -XX:+UseContainerSupport"
-        - name: OTEL_EXPORTER_OTLP_ENDPOINT
-          value: "http://lgtm:4318"
-        - name: OTEL_EXPORTER_OTLP_PROTOCOL
-          value: "http/protobuf"
-        - name: OTEL_PROPAGATORS
-          value: "tracecontext,baggage"
-        - name: OTEL_SERVICE_NAME
-          value: "catalog"
-        - name: OTEL_RESOURCE_ATTRIBUTES
-          value: "deployment.environment=kubernetes"
-        - name: LOGGING_PATTERN_LEVEL
-          value: "%5p [${spring.application.name:},%X{trace_id:-},%X{span_id:-}]"
-        - name: OTEL_LOGS_EXPORTER
-          value: "otlp"
-        - name: OTEL_METRICS_EXPORTER
-          value: "otlp"
-        - name: OTEL_TRACES_EXPORTER
-          value: "otlp"
-        - name: OTEL_INSTRUMENTATION_LOGBACK_APPENDER_ENABLED
-          value: "true"
-        - name: OTEL_INSTRUMENTATION_LOGBACK_MDC_ENABLED
-          value: "true"
-        - name: OTEL_INSTRUMENTATION_JDBC_ENABLED
-          value: "true"
+        envFrom:
+        - configMapRef:
+            name: catalog-config
         resources:
           requests:
             memory: "128Mi"
@@ -296,9 +195,6 @@ spec:
           periodSeconds: 3
           failureThreshold: 10
       volumes:
-      - name: config
-        configMap:
-          name: catalog-config
       - name: otel-agent
         emptyDir: {}
       initContainers:
@@ -332,51 +228,23 @@ metadata:
   name: order-config
   namespace: microservices
 data:
-  application.yaml: | #GRESIT complet!
-    server:
-      port: 8080
-    spring:
-      application:
-        name: order
-      datasource:
-        url: jdbc:postgresql://postgres:5432/order_db
-        username: postgres
-        password: postgres
-        driver-class-name: org.postgresql.Driver
-      jpa:
-        hibernate:
-          ddl-auto: update
-        properties:
-          hibernate:
-            dialect: org.hibernate.dialect.PostgreSQLDialect
-      rabbitmq:
-        host: rabbitmq
-        port: 5672
-        username: guest
-        password: guest
-      cloud:
-        function:
-          definition: onPaymentResultEvent;onShippingResultEvent
-        stream:
-          bindings:
-            onPaymentResultEvent-in-0:
-              destination: PaymentResultEvent-out
-            onShippingResultEvent-in-0:
-              destination: ShippingResultEvent-out
-    eureka:
-      client:
-        serviceUrl:
-          defaultZone: http://eureka:8761/eureka/
-      instance:
-        prefer-ip-address: true
-    management:
-      endpoints:
-        web:
-          exposure:
-            include: health,metrics,prometheus
-      tracing:
-        sampling:
-          probability: 1.0
+  SERVER_PORT: "8080"
+  SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/order_db
+  SPRING_RABBITMQ_HOST: rabbitmq
+  EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka:8761/eureka/
+  EUREKA_INSTANCE_PREFER_IP_ADDRESS: "true"
+  JAVA_TOOL_OPTIONS: "-javaagent:/otel-agent/opentelemetry-javaagent.jar -XX:TieredStopAtLevel=1 -Xms64m -Xmx512m -XX:+UseContainerSupport"
+  OTEL_EXPORTER_OTLP_ENDPOINT: "http://lgtm:4318"
+  OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
+  OTEL_PROPAGATORS: "tracecontext,baggage"
+  OTEL_SERVICE_NAME: "order"
+  OTEL_RESOURCE_ATTRIBUTES: "deployment.environment=kubernetes"
+  OTEL_LOGS_EXPORTER: "otlp"
+  OTEL_METRICS_EXPORTER: "otlp"
+  OTEL_TRACES_EXPORTER: "otlp"
+  OTEL_INSTRUMENTATION_LOGBACK_APPENDER_ENABLED: "true"
+  OTEL_INSTRUMENTATION_LOGBACK_MDC_ENABLED: "true"
+  OTEL_INSTRUMENTATION_JDBC_ENABLED: "true"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -405,45 +273,11 @@ spec:
         ports:
         - containerPort: 8080
         volumeMounts:
-        - name: config
-          mountPath: /config
         - name: otel-agent
           mountPath: /otel-agent
-        env:
-        - name: SPRING_CONFIG_LOCATION
-          value: file:/config/application.yaml
-        - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
-          value: http://eureka:8761/eureka/
-        - name: SPRING_DATASOURCE_URL
-          value: jdbc:postgresql://postgres:5432/order_db
-        - name: SPRING_RABBITMQ_HOST
-          value: rabbitmq
-        - name: JAVA_TOOL_OPTIONS
-          value: "-javaagent:/otel-agent/opentelemetry-javaagent.jar -XX:TieredStopAtLevel=1 -Xms64m -Xmx512m -XX:+UseContainerSupport"
-        - name: OTEL_EXPORTER_OTLP_ENDPOINT
-          value: "http://lgtm:4318"
-        - name: OTEL_EXPORTER_OTLP_PROTOCOL
-          value: "http/protobuf"
-        - name: OTEL_PROPAGATORS
-          value: "tracecontext,baggage"
-        - name: OTEL_SERVICE_NAME
-          value: "order"
-        - name: OTEL_RESOURCE_ATTRIBUTES
-          value: "deployment.environment=kubernetes"
-        - name: LOGGING_PATTERN_LEVEL
-          value: "%5p [${spring.application.name:},%X{trace_id:-},%X{span_id:-}]"
-        - name: OTEL_LOGS_EXPORTER
-          value: "otlp"
-        - name: OTEL_METRICS_EXPORTER
-          value: "otlp"
-        - name: OTEL_TRACES_EXPORTER
-          value: "otlp"
-        - name: OTEL_INSTRUMENTATION_LOGBACK_APPENDER_ENABLED
-          value: "true"
-        - name: OTEL_INSTRUMENTATION_LOGBACK_MDC_ENABLED
-          value: "true"
-        - name: OTEL_INSTRUMENTATION_JDBC_ENABLED
-          value: "true"
+        envFrom:
+        - configMapRef:
+            name: order-config
         resources:
           requests:
             memory: "128Mi"
@@ -466,9 +300,6 @@ spec:
           periodSeconds: 3
           failureThreshold: 10
       volumes:
-      - name: config
-        configMap:
-          name: order-config
       - name: otel-agent
         emptyDir: {}
       initContainers:
@@ -505,38 +336,23 @@ metadata:
   name: payment-config
   namespace: microservices
 data:
+  SERVER_PORT: "8080"
   SPRING_RABBITMQ_HOST: rabbitmq
-  application.yaml: |
-    server:
-      port: 8080
-    spring:
-      application:
-        name: payment
-      rabbitmq:
-        host: rabbitmq
-        port: 5672
-        username: guest
-        password: guest
-      cloud:
-        openfeign:
-          client:
-            config:
-              payment-gateway:
-                url: http://wiremock:8080
-    eureka:
-      client:
-        serviceUrl:
-          defaultZone: http://eureka:8761/eureka/
-      instance:
-        prefer-ip-address: true
-    management:
-      endpoints:
-        web:
-          exposure:
-            include: health,metrics,prometheus
-      tracing:
-        sampling:
-          probability: 1.0
+  SPRING_CLOUD_OPENFEIGN_CLIENT_CONFIG_PAYMENT-GATEWAY_URL: http://wiremock:8080
+  EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka:8761/eureka/
+  EUREKA_INSTANCE_PREFER_IP_ADDRESS: "true"
+  JAVA_TOOL_OPTIONS: "-javaagent:/otel-agent/opentelemetry-javaagent.jar -XX:TieredStopAtLevel=1 -Xms64m -Xmx512m -XX:+UseContainerSupport"
+  OTEL_EXPORTER_OTLP_ENDPOINT: "http://lgtm:4318"
+  OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
+  OTEL_PROPAGATORS: "tracecontext,baggage"
+  OTEL_SERVICE_NAME: "payment"
+  OTEL_RESOURCE_ATTRIBUTES: "deployment.environment=kubernetes"
+  OTEL_LOGS_EXPORTER: "otlp"
+  OTEL_METRICS_EXPORTER: "otlp"
+  OTEL_TRACES_EXPORTER: "otlp"
+  OTEL_INSTRUMENTATION_LOGBACK_APPENDER_ENABLED: "true"
+  OTEL_INSTRUMENTATION_LOGBACK_MDC_ENABLED: "true"
+  OTEL_INSTRUMENTATION_JDBC_ENABLED: "true"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -565,46 +381,11 @@ spec:
         ports:
         - containerPort: 8080
         volumeMounts:
-        - name: config
-          mountPath: /config
         - name: otel-agent
           mountPath: /otel-agent
         envFrom:
-          - configMapRef:
-              name: payment-config
-        env:
-        - name: SPRING_CONFIG_LOCATION
-          value: file:/config/application.yaml
-        - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
-          value: http://eureka:8761/eureka/
-        - name: SPRING_RABBITMQ_HOST
-          value: rabbitmq
-        - name: JAVA_TOOL_OPTIONS
-          value: "-javaagent:/otel-agent/opentelemetry-javaagent.jar -XX:TieredStopAtLevel=1 -Xms64m -Xmx512m -XX:+UseContainerSupport"
-        - name: OTEL_EXPORTER_OTLP_ENDPOINT
-          value: "http://lgtm:4318"
-        - name: OTEL_EXPORTER_OTLP_PROTOCOL
-          value: "http/protobuf"
-        - name: OTEL_PROPAGATORS
-          value: "tracecontext,baggage"
-        - name: OTEL_SERVICE_NAME
-          value: "payment"
-        - name: OTEL_RESOURCE_ATTRIBUTES
-          value: "deployment.environment=kubernetes"
-        - name: LOGGING_PATTERN_LEVEL
-          value: "%5p [${spring.application.name:},%X{trace_id:-},%X{span_id:-}]"
-        - name: OTEL_LOGS_EXPORTER
-          value: "otlp"
-        - name: OTEL_METRICS_EXPORTER
-          value: "otlp"
-        - name: OTEL_TRACES_EXPORTER
-          value: "otlp"
-        - name: OTEL_INSTRUMENTATION_LOGBACK_APPENDER_ENABLED
-          value: "true"
-        - name: OTEL_INSTRUMENTATION_LOGBACK_MDC_ENABLED
-          value: "true"
-        - name: OTEL_INSTRUMENTATION_JDBC_ENABLED
-          value: "true"
+        - configMapRef:
+            name: payment-config
         resources:
           requests:
             memory: "128Mi"
@@ -627,9 +408,6 @@ spec:
           periodSeconds: 3
           failureThreshold: 10
       volumes:
-      - name: config
-        configMap:
-          name: payment-config
       - name: otel-agent
         emptyDir: {}
       initContainers:
@@ -639,9 +417,6 @@ spec:
         volumeMounts:
         - name: otel-agent
           mountPath: /otel-agent
-      - name: wait-for-postgres
-        image: busybox:1.35
-        command: ['sh', '-c', "until nc -z postgres 5432; do echo waiting for postgres; sleep 2; done"]
       - name: wait-for-rabbitmq
         image: busybox:1.35
         command: ['sh', '-c', "until nc -z rabbitmq 5672; do echo waiting for rabbitmq; sleep 2; done"]
@@ -666,37 +441,23 @@ metadata:
   name: shipping-config
   namespace: microservices
 data:
-  application.yaml: |
-    server:
-      port: 8080
-    spring:
-      application:
-        name: shipping
-      rabbitmq:
-        host: rabbitmq
-        port: 5672
-        username: guest
-        password: guest
-      cloud:
-        openfeign:
-          client:
-            config:
-              shipping-provider:
-                url: http://wiremock:8080
-    eureka:
-      client:
-        serviceUrl:
-          defaultZone: http://eureka:8761/eureka/
-      instance:
-        prefer-ip-address: true
-    management:
-      endpoints:
-        web:
-          exposure:
-            include: health,metrics,prometheus
-      tracing:
-        sampling:
-          probability: 1.0
+  SERVER_PORT: "8080"
+  SPRING_RABBITMQ_HOST: rabbitmq
+  SPRING_CLOUD_OPENFEIGN_CLIENT_CONFIG_SHIPPING-PROVIDER_URL: http://wiremock:8080
+  EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka:8761/eureka/
+  EUREKA_INSTANCE_PREFER_IP_ADDRESS: "true"
+  JAVA_TOOL_OPTIONS: "-javaagent:/otel-agent/opentelemetry-javaagent.jar -XX:TieredStopAtLevel=1 -Xms64m -Xmx512m -XX:+UseContainerSupport"
+  OTEL_EXPORTER_OTLP_ENDPOINT: "http://lgtm:4318"
+  OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
+  OTEL_PROPAGATORS: "tracecontext,baggage"
+  OTEL_SERVICE_NAME: "shipping"
+  OTEL_RESOURCE_ATTRIBUTES: "deployment.environment=kubernetes"
+  OTEL_LOGS_EXPORTER: "otlp"
+  OTEL_METRICS_EXPORTER: "otlp"
+  OTEL_TRACES_EXPORTER: "otlp"
+  OTEL_INSTRUMENTATION_LOGBACK_APPENDER_ENABLED: "true"
+  OTEL_INSTRUMENTATION_LOGBACK_MDC_ENABLED: "true"
+  OTEL_INSTRUMENTATION_JDBC_ENABLED: "true"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -725,43 +486,11 @@ spec:
         ports:
         - containerPort: 8080
         volumeMounts:
-        - name: config
-          mountPath: /config
         - name: otel-agent
           mountPath: /otel-agent
-        env:
-        - name: SPRING_CONFIG_LOCATION
-          value: file:/config/application.yaml
-        - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
-          value: http://eureka:8761/eureka/
-        - name: SPRING_RABBITMQ_HOST
-          value: rabbitmq
-        - name: JAVA_TOOL_OPTIONS
-          value: "-javaagent:/otel-agent/opentelemetry-javaagent.jar -XX:TieredStopAtLevel=1 -Xms64m -Xmx512m -XX:+UseContainerSupport"
-        - name: OTEL_EXPORTER_OTLP_ENDPOINT
-          value: "http://lgtm:4318"
-        - name: OTEL_EXPORTER_OTLP_PROTOCOL
-          value: "http/protobuf"
-        - name: OTEL_PROPAGATORS
-          value: "tracecontext,baggage"
-        - name: OTEL_SERVICE_NAME
-          value: "shipping"
-        - name: OTEL_RESOURCE_ATTRIBUTES
-          value: "deployment.environment=kubernetes"
-        - name: LOGGING_PATTERN_LEVEL
-          value: "%5p [${spring.application.name:},%X{trace_id:-},%X{span_id:-}]"
-        - name: OTEL_LOGS_EXPORTER
-          value: "otlp"
-        - name: OTEL_METRICS_EXPORTER
-          value: "otlp"
-        - name: OTEL_TRACES_EXPORTER
-          value: "otlp"
-        - name: OTEL_INSTRUMENTATION_LOGBACK_APPENDER_ENABLED
-          value: "true"
-        - name: OTEL_INSTRUMENTATION_LOGBACK_MDC_ENABLED
-          value: "true"
-        - name: OTEL_INSTRUMENTATION_JDBC_ENABLED
-          value: "true"
+        envFrom:
+        - configMapRef:
+            name: shipping-config
         resources:
           requests:
             memory: "128Mi"
@@ -784,9 +513,6 @@ spec:
           periodSeconds: 3
           failureThreshold: 10
       volumes:
-      - name: config
-        configMap:
-          name: shipping-config
       - name: otel-agent
         emptyDir: {}
       initContainers:
@@ -796,9 +522,6 @@ spec:
         volumeMounts:
         - name: otel-agent
           mountPath: /otel-agent
-      - name: wait-for-postgres
-        image: busybox:1.35
-        command: ['sh', '-c', "until nc -z postgres 5432; do echo waiting for postgres; sleep 2; done"]
       - name: wait-for-rabbitmq
         image: busybox:1.35
         command: ['sh', '-c', "until nc -z rabbitmq 5672; do echo waiting for rabbitmq; sleep 2; done"]
@@ -823,39 +546,23 @@ metadata:
   name: inventory-config
   namespace: microservices
 data:
-  application.yaml: |
-    server:
-      port: 8080
-    spring:
-      application:
-        name: inventory
-      datasource:
-        url: jdbc:postgresql://postgres:5432/inventory
-        username: postgres
-        password: postgres
-        driver-class-name: org.postgresql.Driver
-      jpa:
-        hibernate:
-          ddl-auto: update
-        properties:
-          hibernate:
-            dialect: org.hibernate.dialect.PostgreSQLDialect
-      rabbitmq:
-        host: rabbitmq
-        port: 5672
-        username: guest
-        password: guest
-    eureka:
-      client:
-        serviceUrl:
-          defaultZone: http://eureka:8761/eureka/
-      instance:
-        prefer-ip-address: true
-    management:
-      endpoints:
-        web:
-          exposure:
-            include: health,metrics,prometheus
+  SERVER_PORT: "8080"
+  SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/inventory
+  SPRING_RABBITMQ_HOST: rabbitmq
+  EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka:8761/eureka/
+  EUREKA_INSTANCE_PREFER_IP_ADDRESS: "true"
+  JAVA_TOOL_OPTIONS: "-javaagent:/otel-agent/opentelemetry-javaagent.jar -XX:TieredStopAtLevel=1 -Xms64m -Xmx512m -XX:+UseContainerSupport"
+  OTEL_EXPORTER_OTLP_ENDPOINT: "http://lgtm:4318"
+  OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
+  OTEL_PROPAGATORS: "tracecontext,baggage"
+  OTEL_SERVICE_NAME: "inventory"
+  OTEL_RESOURCE_ATTRIBUTES: "deployment.environment=kubernetes"
+  OTEL_LOGS_EXPORTER: "otlp"
+  OTEL_METRICS_EXPORTER: "otlp"
+  OTEL_TRACES_EXPORTER: "otlp"
+  OTEL_INSTRUMENTATION_LOGBACK_APPENDER_ENABLED: "true"
+  OTEL_INSTRUMENTATION_LOGBACK_MDC_ENABLED: "true"
+  OTEL_INSTRUMENTATION_JDBC_ENABLED: "true"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -884,43 +591,11 @@ spec:
         ports:
         - containerPort: 8080
         volumeMounts:
-        - name: config
-          mountPath: /config
         - name: otel-agent
           mountPath: /otel-agent
-        env:
-        - name: SPRING_CONFIG_LOCATION
-          value: file:/config/application.yaml
-        - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
-          value: http://eureka:8761/eureka/
-        - name: SPRING_DATASOURCE_URL
-          value: jdbc:postgresql://postgres:5432/inventory
-        - name: JAVA_TOOL_OPTIONS
-          value: "-javaagent:/otel-agent/opentelemetry-javaagent.jar -XX:TieredStopAtLevel=1 -Xms64m -Xmx512m -XX:+UseContainerSupport"
-        - name: OTEL_EXPORTER_OTLP_ENDPOINT
-          value: "http://lgtm:4318"
-        - name: OTEL_EXPORTER_OTLP_PROTOCOL
-          value: "http/protobuf"
-        - name: OTEL_PROPAGATORS
-          value: "tracecontext,baggage"
-        - name: OTEL_SERVICE_NAME
-          value: "inventory"
-        - name: OTEL_RESOURCE_ATTRIBUTES
-          value: "deployment.environment=kubernetes"
-        - name: LOGGING_PATTERN_LEVEL
-          value: "%5p [${spring.application.name:},%X{trace_id:-},%X{span_id:-}]"
-        - name: OTEL_LOGS_EXPORTER
-          value: "otlp"
-        - name: OTEL_METRICS_EXPORTER
-          value: "otlp"
-        - name: OTEL_TRACES_EXPORTER
-          value: "otlp"
-        - name: OTEL_INSTRUMENTATION_LOGBACK_APPENDER_ENABLED
-          value: "true"
-        - name: OTEL_INSTRUMENTATION_LOGBACK_MDC_ENABLED
-          value: "true"
-        - name: OTEL_INSTRUMENTATION_JDBC_ENABLED
-          value: "true"
+        envFrom:
+        - configMapRef:
+            name: inventory-config
         resources:
           requests:
             memory: "128Mi"
@@ -943,9 +618,6 @@ spec:
           periodSeconds: 3
           failureThreshold: 10
       volumes:
-      - name: config
-        configMap:
-          name: inventory-config
       - name: otel-agent
         emptyDir: {}
       initContainers:
@@ -958,6 +630,9 @@ spec:
       - name: wait-for-postgres
         image: busybox:1.35
         command: ['sh', '-c', "until nc -z postgres 5432; do echo waiting for postgres; sleep 2; done"]
+      - name: wait-for-rabbitmq
+        image: busybox:1.35
+        command: ['sh', '-c', "until nc -z rabbitmq 5672; do echo waiting for rabbitmq; sleep 2; done"]
 ---
 # Notification Service
 apiVersion: v1
@@ -979,31 +654,22 @@ metadata:
   name: notification-config
   namespace: microservices
 data:
-  application.yaml: |
-    server:
-      port: 8080
-    spring:
-      application:
-        name: notification
-      rabbitmq:
-        host: rabbitmq
-        port: 5672
-        username: guest
-        password: guest
-    eureka:
-      client:
-        serviceUrl:
-          defaultZone: http://eureka:8761/eureka/
-      instance:
-        prefer-ip-address: true
-    management:
-      endpoints:
-        web:
-          exposure:
-            include: health,metrics,prometheus
-      tracing:
-        sampling:
-          probability: 1.0
+  SERVER_PORT: "8080"
+  SPRING_RABBITMQ_HOST: rabbitmq
+  EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka:8761/eureka/
+  EUREKA_INSTANCE_PREFER_IP_ADDRESS: "true"
+  JAVA_TOOL_OPTIONS: "-javaagent:/otel-agent/opentelemetry-javaagent.jar -XX:TieredStopAtLevel=1 -Xms64m -Xmx512m -XX:+UseContainerSupport"
+  OTEL_EXPORTER_OTLP_ENDPOINT: "http://lgtm:4318"
+  OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
+  OTEL_PROPAGATORS: "tracecontext,baggage"
+  OTEL_SERVICE_NAME: "notification"
+  OTEL_RESOURCE_ATTRIBUTES: "deployment.environment=kubernetes"
+  OTEL_LOGS_EXPORTER: "otlp"
+  OTEL_METRICS_EXPORTER: "otlp"
+  OTEL_TRACES_EXPORTER: "otlp"
+  OTEL_INSTRUMENTATION_LOGBACK_APPENDER_ENABLED: "true"
+  OTEL_INSTRUMENTATION_LOGBACK_MDC_ENABLED: "true"
+  OTEL_INSTRUMENTATION_JDBC_ENABLED: "true"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -1032,43 +698,11 @@ spec:
         ports:
         - containerPort: 8080
         volumeMounts:
-        - name: config
-          mountPath: /config
         - name: otel-agent
           mountPath: /otel-agent
-        env:
-        - name: SPRING_CONFIG_LOCATION
-          value: file:/config/application.yaml
-        - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
-          value: http://eureka:8761/eureka/
-        - name: SPRING_RABBITMQ_HOST
-          value: rabbitmq
-        - name: JAVA_TOOL_OPTIONS
-          value: "-javaagent:/otel-agent/opentelemetry-javaagent.jar -XX:TieredStopAtLevel=1 -Xms64m -Xmx512m -XX:+UseContainerSupport"
-        - name: OTEL_EXPORTER_OTLP_ENDPOINT
-          value: "http://lgtm:4318"
-        - name: OTEL_EXPORTER_OTLP_PROTOCOL
-          value: "http/protobuf"
-        - name: OTEL_PROPAGATORS
-          value: "tracecontext,baggage"
-        - name: OTEL_SERVICE_NAME
-          value: "notification"
-        - name: OTEL_RESOURCE_ATTRIBUTES
-          value: "deployment.environment=kubernetes"
-        - name: LOGGING_PATTERN_LEVEL
-          value: "%5p [${spring.application.name:},%X{trace_id:-},%X{span_id:-}]"
-        - name: OTEL_LOGS_EXPORTER
-          value: "otlp"
-        - name: OTEL_METRICS_EXPORTER
-          value: "otlp"
-        - name: OTEL_TRACES_EXPORTER
-          value: "otlp"
-        - name: OTEL_INSTRUMENTATION_LOGBACK_APPENDER_ENABLED
-          value: "true"
-        - name: OTEL_INSTRUMENTATION_LOGBACK_MDC_ENABLED
-          value: "true"
-        - name: OTEL_INSTRUMENTATION_JDBC_ENABLED
-          value: "true"
+        envFrom:
+        - configMapRef:
+            name: notification-config
         resources:
           requests:
             memory: "128Mi"
@@ -1091,9 +725,6 @@ spec:
           periodSeconds: 3
           failureThreshold: 10
       volumes:
-      - name: config
-        configMap:
-          name: notification-config
       - name: otel-agent
         emptyDir: {}
       initContainers:

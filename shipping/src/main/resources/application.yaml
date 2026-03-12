@@ -4,6 +4,7 @@ spring.cloud.openfeign.client.config:
   shipping-provider:
     url: http://localhost:9999
 
+
 spring.cloud.function.definition: requestShipmentListener
 spring.cloud.stream.bindings:
   ShippingResultEvent-out:

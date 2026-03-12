@@ -22,6 +22,10 @@ spring.cloud.stream.bindings:
     destination: ShippingAcceptedEvent
     group: ${spring.application.name}
 spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/order_db
+    username: postgres
+    password: postgres
   cloud:
     openfeign:
       client:

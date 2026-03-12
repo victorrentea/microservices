@@ -84,11 +84,10 @@ Everything is deployed in namespace:
 
 ### Manifest order
 Apply in this order:
-1. `k8s/01-infrastructure.yaml`
+1. `k8s/01-infrastructure.yaml` (includes postgres, rabbitmq, wiremock, lgtm)
 2. `k8s/02-eureka-gateway.yaml`
-3. `k8s/04-lgtm.yaml`
-4. `k8s/05-otel-agent.yaml`
-5. `k8s/03-microservices.yaml`
+3. `k8s/05-otel-agent.yaml`
+4. `k8s/03-microservices.yaml`
 
 ### Core infrastructure
 `k8s/01-infrastructure.yaml` provides at least:
@@ -96,7 +95,7 @@ Apply in this order:
 - `rabbitmq`
 - `wiremock`
 
-`k8s/04-lgtm.yaml` provides:
+`k8s/01-infrastructure.yaml` also provides:
 - `lgtm` — Grafana LGTM all-in-one (Grafana + Loki + Tempo + Prometheus)
   - Grafana UI: `http://localhost:3000` (LoadBalancer, no auth in dev)
   - OTLP HTTP: `http://lgtm:4318` (cluster-internal, used by OTel agents)

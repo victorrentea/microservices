@@ -28,6 +28,10 @@ resilience4j: # must-have in resilient microservice
         permitted-number-of-calls-in-half-open-state: 10
 
 spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/customer
+    username: postgres
+    password: postgres
   cloud:
     openfeign:
       client:
