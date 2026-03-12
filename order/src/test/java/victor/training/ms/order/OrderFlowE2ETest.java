@@ -47,12 +47,14 @@ class OrderFlowE2ETest {
                 "/api/payments/actuator/health",
                 "/api/shipping/actuator/health"
         );
+        System.out.println("Waiting for services to be UP: " + endpoints);
         try (ExecutorService pool = Executors.newFixedThreadPool(endpoints.size())) {
             List<Future<Void>> futures = endpoints.stream()
                     .<Future<Void>>map(ep -> pool.submit(() -> { awaitEndpointUp(ep, STARTUP_TIMEOUT); return null; }))
                     .toList();
             for (Future<Void> f : futures) f.get();
         }
+        System.out.println("All services UP");
 
         // ── 1. Place order ────────────────────────────────────────────────────────
         String placeOrderBody = """
@@ -183,12 +185,17 @@ class OrderFlowE2ETest {
     private void awaitEndpointUp(String path, Duration timeout) throws Exception {
         Instant deadline = Instant.now().plus(timeout);
         String lastError = null;
+        boolean logged = false;
         while (Instant.now().isBefore(deadline)) {
             try {
                 get(path);
                 return;
             } catch (AssertionError e) {
                 lastError = e.getMessage();
+                if (!logged) {
+                    System.out.println("Waiting for " + path + " ...");
+                    logged = true;
+                }
             }
             Thread.sleep(POLL_INTERVAL.toMillis());
         }
