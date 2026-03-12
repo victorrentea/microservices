@@ -13,6 +13,8 @@ import victor.training.ms.order.entity.LineItem;
 import victor.training.ms.order.entity.Order;
 import victor.training.ms.order.repo.OrderRepo;
 
+import org.slf4j.MDC;
+
 import java.util.List;
 import java.util.Map;
 
@@ -35,8 +37,9 @@ public class PlaceOrderRest {
 
   @PostMapping("order")
   public String placeOrder(@RequestBody PlaceOrderRequest request) {
+    String traceId = MDC.get("trace_id");
     List<Long> productIds = request.items().stream().map(LineItem::productId).toList();
-    log.info("Placing order for products: {}", productIds);
+    log.info("trace_id={} placing order for products={}", traceId, productIds);
 
     Map<Long, Double> prices = catalogClient.getManyPrices(productIds); // batching
     if (prices.size() != productIds.size()) {
@@ -54,9 +57,10 @@ public class PlaceOrderRest {
     orderRepo.save(order);
 
     // reservation
+    log.info("trace_id={} reserving stock in inventory for orderId={}", traceId, order.id());
     inventoryClient.reserveStock(order.id(), request.items());
 
-    log.info("Created order: {}", order);
+    log.info("trace_id={} created order: {}", traceId, order);
     return paymentClient.generatePaymentUrl(order.id(), order.total()) + "&orderId=" + order.id();
   }
 }

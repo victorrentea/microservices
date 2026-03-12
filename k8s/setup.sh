@@ -52,14 +52,20 @@ done
 # --- Apply k8s manifests ---
 log "Applying Kubernetes manifests"
 kubectl apply -f "$SCRIPT_DIR/01-infrastructure.yaml"
+kubectl create configmap wiremock-mappings \
+  --from-file="$PROJECT_ROOT/wiremock/mappings/" \
+  -n "$NAMESPACE" --dry-run=client -o yaml | kubectl apply -f -
 kubectl apply -f "$SCRIPT_DIR/02-eureka-gateway.yaml"
+kubectl apply -f "$SCRIPT_DIR/04-lgtm.yaml"
+kubectl apply -f "$SCRIPT_DIR/05-otel-agent.yaml"
 kubectl apply -f "$SCRIPT_DIR/03-microservices.yaml"
 ok "Manifests applied"
 
 # --- Wait for pods ---
-log "Waiting for infrastructure (postgres, rabbitmq)..."
+log "Waiting for infrastructure (postgres, rabbitmq, lgtm)..."
 kubectl wait deployment/postgres  -n "$NAMESPACE" --for=condition=available --timeout=120s
 kubectl wait deployment/rabbitmq  -n "$NAMESPACE" --for=condition=available --timeout=120s
+kubectl wait deployment/lgtm      -n "$NAMESPACE" --for=condition=available --timeout=180s
 ok "Infrastructure ready"
 
 log "Waiting for services..."

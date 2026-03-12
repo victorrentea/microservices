@@ -1,0 +1,24 @@
+---
+# OTel Java Agent downloader ConfigMap
+# Used as initContainer script in every microservice pod.
+# Downloads opentelemetry-javaagent.jar into /otel-agent shared volume.
+# Version pinned to v2.25.0 — update here to upgrade all services at once.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otel-agent-downloader
+  namespace: microservices
+data:
+  download.sh: |
+    #!/bin/sh
+    AGENT_JAR=/otel-agent/opentelemetry-javaagent.jar
+    if [ -f "$AGENT_JAR" ]; then
+      echo "OTel agent already present, skipping download."
+      exit 0
+    fi
+    AGENT_VERSION="v2.25.0"
+    URL="https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/download/${AGENT_VERSION}/opentelemetry-javaagent.jar"
+    echo "Downloading OTel Java agent ${AGENT_VERSION}..."
+    wget -q -O "$AGENT_JAR" "$URL"
+    echo "Done: $(ls -lh $AGENT_JAR)"
+

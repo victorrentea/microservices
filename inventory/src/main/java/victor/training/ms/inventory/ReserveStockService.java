@@ -38,9 +38,28 @@ public class ReserveStockService {
   }
 
   private void subtractStock(long productId, Integer count) {
-    Stock stock = stockRepo.findByProductId(productId).orElseThrow();
+    Stock stock = loadAndCollapseStockRows(productId);
     stock.remove(count);
     stockRepo.save(stock);
+  }
+
+  private Stock loadAndCollapseStockRows(long productId) {
+    List<Stock> rows = stockRepo.findAllByProductIdOrderByIdAsc(productId);
+    if (rows.isEmpty()) {
+      throw new IllegalArgumentException("No stock row for productId=" + productId);
+    }
+    if (rows.size() == 1) {
+      return rows.get(0);
+    }
+
+    // Defensive cleanup for environments where old seed logic created duplicates.
+    Stock primary = rows.get(0);
+    int totalItems = rows.stream().mapToInt(Stock::items).sum();
+    primary.items(totalItems);
+    stockRepo.deleteAll(rows.subList(1, rows.size()));
+    stockRepo.save(primary);
+    log.warn("Collapsed {} duplicate stock rows for productId={} into stockId={} with items={}", rows.size() - 1, productId, primary.id(), totalItems);
+    return primary;
   }
 
   @Bean

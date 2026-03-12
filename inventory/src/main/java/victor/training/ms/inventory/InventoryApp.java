@@ -14,6 +14,7 @@ import victor.training.ms.shared.BackInStockEvent;
 import victor.training.ms.shared.OutOfStockEvent;
 
 import java.util.List;
+import org.slf4j.MDC;
 
 @Slf4j
 @Service
@@ -29,6 +30,7 @@ public class InventoryApp {
 
   @PutMapping("inventory/stock/reserve/{orderId}")
   public void reserveStock(@PathVariable long orderId, @RequestBody List<LineItem> items) {
+    log.info("[TRACE-PROPAGATION] reserveStock called - orderId={} trace_id={}", orderId, MDC.get("trace_id"));
     reserveStockService.reserveStock(orderId, items);
   }
 

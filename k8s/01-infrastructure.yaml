@@ -138,39 +138,8 @@ spec:
   selector:
     app: wiremock
 ---
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: wiremock-mappings
-  namespace: microservices
-data:
-  request-payment.json: |
-    {
-      "request": {
-        "method": "GET",
-        "urlPathPattern": "/get-payment-link.*"
-      },
-      "response": {
-        "status": 200,
-        "body": "https://payment-link",
-        "fixedDelayMilliseconds": 20
-      }
-    }
-  request-shipment.json: |
-    {
-      "request": {
-        "method": "POST",
-        "urlPathPattern": "/create-shipping.*"
-      },
-      "response": {
-        "status": 200,
-        "headers": {
-          "Content-Type": "text/plain"
-        },
-        "body": "trackingNumber",
-        "fixedDelayMilliseconds": 4000
-      }
-    }
+# wiremock-mappings ConfigMap is generated dynamically from wiremock/mappings/ by setup.sh
+# kubectl create configmap wiremock-mappings --from-file=../wiremock/mappings/ -n microservices --dry-run=client -o yaml | kubectl apply -f -
 ---
 apiVersion: apps/v1
 kind: Deployment

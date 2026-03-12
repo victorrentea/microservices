@@ -60,7 +60,12 @@ metadata:
   name: customer
   namespace: microservices
 spec:
-  replicas: 2
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
   selector:
     matchLabels:
       app: customer
@@ -78,6 +83,8 @@ spec:
         volumeMounts:
         - name: config
           mountPath: /config
+        - name: otel-agent
+          mountPath: /otel-agent
         env:
         - name: SPRING_CONFIG_LOCATION
           value: file:/config/application.yaml
@@ -85,30 +92,66 @@ spec:
           value: http://eureka:8761/eureka/
         - name: SPRING_DATASOURCE_URL
           value: jdbc:postgresql://postgres:5432/customer
+        - name: JAVA_TOOL_OPTIONS
+          value: "-javaagent:/otel-agent/opentelemetry-javaagent.jar -XX:TieredStopAtLevel=1 -Xms64m -Xmx512m -XX:+UseContainerSupport"
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "http://lgtm:4318"
+        - name: OTEL_EXPORTER_OTLP_PROTOCOL
+          value: "http/protobuf"
+        - name: OTEL_PROPAGATORS
+          value: "tracecontext,baggage"
+        - name: OTEL_SERVICE_NAME
+          value: "customer"
+        - name: OTEL_RESOURCE_ATTRIBUTES
+          value: "deployment.environment=kubernetes"
+        - name: LOGGING_PATTERN_LEVEL
+          value: "%5p [${spring.application.name:},%X{trace_id:-},%X{span_id:-}]"
+        - name: OTEL_LOGS_EXPORTER
+          value: "otlp"
+        - name: OTEL_METRICS_EXPORTER
+          value: "otlp"
+        - name: OTEL_TRACES_EXPORTER
+          value: "otlp"
+        - name: OTEL_INSTRUMENTATION_LOGBACK_APPENDER_ENABLED
+          value: "true"
+        - name: OTEL_INSTRUMENTATION_LOGBACK_MDC_ENABLED
+          value: "true"
+        - name: OTEL_INSTRUMENTATION_JDBC_ENABLED
+          value: "true"
         resources:
           requests:
-            memory: "256Mi"
-            cpu: "250m"
+            memory: "128Mi"
+            cpu: "100m"
           limits:
-            memory: "1Gi"
+            memory: "768Mi"
             cpu: "500m"
         livenessProbe:
           httpGet:
-            path: /actuator/health
+            path: /actuator/health/liveness
             port: 8080
-          initialDelaySeconds: 40
-          periodSeconds: 10
+          initialDelaySeconds: 45
+          periodSeconds: 5
+          failureThreshold: 5
         readinessProbe:
           httpGet:
-            path: /actuator/health
+            path: /actuator/health/readiness
             port: 8080
-          initialDelaySeconds: 30
-          periodSeconds: 5
+          initialDelaySeconds: 35
+          periodSeconds: 3
+          failureThreshold: 10
       volumes:
       - name: config
         configMap:
           name: customer-config
+      - name: otel-agent
+        emptyDir: {}
       initContainers:
+      - name: otel-agent-downloader
+        image: curlimages/curl:8.10.1
+        command: ['sh', '-c', "curl -fsSL -o /otel-agent/opentelemetry-javaagent.jar https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/download/v2.25.0/opentelemetry-javaagent.jar && echo OTel agent downloaded"]
+        volumeMounts:
+        - name: otel-agent
+          mountPath: /otel-agent
       - name: wait-for-postgres
         image: busybox:1.35
         command: ['sh', '-c', "until nc -z postgres 5432; do echo waiting for postgres; sleep 2; done"]
@@ -174,6 +217,11 @@ metadata:
   namespace: microservices
 spec:
   replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
   selector:
     matchLabels:
       app: catalog
@@ -191,6 +239,8 @@ spec:
         volumeMounts:
         - name: config
           mountPath: /config
+        - name: otel-agent
+          mountPath: /otel-agent
         env:
         - name: SPRING_CONFIG_LOCATION
           value: file:/config/application.yaml
@@ -198,30 +248,66 @@ spec:
           value: http://eureka:8761/eureka/
         - name: SPRING_DATASOURCE_URL
           value: jdbc:postgresql://postgres:5432/catalog
+        - name: JAVA_TOOL_OPTIONS
+          value: "-javaagent:/otel-agent/opentelemetry-javaagent.jar -XX:TieredStopAtLevel=1 -Xms64m -Xmx512m -XX:+UseContainerSupport"
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "http://lgtm:4318"
+        - name: OTEL_EXPORTER_OTLP_PROTOCOL
+          value: "http/protobuf"
+        - name: OTEL_PROPAGATORS
+          value: "tracecontext,baggage"
+        - name: OTEL_SERVICE_NAME
+          value: "catalog"
+        - name: OTEL_RESOURCE_ATTRIBUTES
+          value: "deployment.environment=kubernetes"
+        - name: LOGGING_PATTERN_LEVEL
+          value: "%5p [${spring.application.name:},%X{trace_id:-},%X{span_id:-}]"
+        - name: OTEL_LOGS_EXPORTER
+          value: "otlp"
+        - name: OTEL_METRICS_EXPORTER
+          value: "otlp"
+        - name: OTEL_TRACES_EXPORTER
+          value: "otlp"
+        - name: OTEL_INSTRUMENTATION_LOGBACK_APPENDER_ENABLED
+          value: "true"
+        - name: OTEL_INSTRUMENTATION_LOGBACK_MDC_ENABLED
+          value: "true"
+        - name: OTEL_INSTRUMENTATION_JDBC_ENABLED
+          value: "true"
         resources:
           requests:
-            memory: "256Mi"
-            cpu: "250m"
+            memory: "128Mi"
+            cpu: "100m"
           limits:
-            memory: "1Gi"
+            memory: "768Mi"
             cpu: "500m"
         livenessProbe:
           httpGet:
-            path: /actuator/health
+            path: /actuator/health/liveness
             port: 8080
-          initialDelaySeconds: 40
-          periodSeconds: 10
+          initialDelaySeconds: 45
+          periodSeconds: 5
+          failureThreshold: 5
         readinessProbe:
           httpGet:
-            path: /actuator/health
+            path: /actuator/health/readiness
             port: 8080
-          initialDelaySeconds: 30
-          periodSeconds: 5
+          initialDelaySeconds: 35
+          periodSeconds: 3
+          failureThreshold: 10
       volumes:
       - name: config
         configMap:
           name: catalog-config
+      - name: otel-agent
+        emptyDir: {}
       initContainers:
+      - name: otel-agent-downloader
+        image: curlimages/curl:8.10.1
+        command: ['sh', '-c', "curl -fsSL -o /otel-agent/opentelemetry-javaagent.jar https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/download/v2.25.0/opentelemetry-javaagent.jar && echo OTel agent downloaded"]
+        volumeMounts:
+        - name: otel-agent
+          mountPath: /otel-agent
       - name: wait-for-postgres
         image: busybox:1.35
         command: ['sh', '-c', "until nc -z postgres 5432; do echo waiting for postgres; sleep 2; done"]
@@ -246,7 +332,7 @@ metadata:
   name: order-config
   namespace: microservices
 data:
-  application.yaml: |
+  application.yaml: | #GRESIT complet!
     server:
       port: 8080
     spring:
@@ -299,6 +385,11 @@ metadata:
   namespace: microservices
 spec:
   replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
   selector:
     matchLabels:
       app: order
@@ -316,6 +407,8 @@ spec:
         volumeMounts:
         - name: config
           mountPath: /config
+        - name: otel-agent
+          mountPath: /otel-agent
         env:
         - name: SPRING_CONFIG_LOCATION
           value: file:/config/application.yaml
@@ -325,30 +418,66 @@ spec:
           value: jdbc:postgresql://postgres:5432/order_db
         - name: SPRING_RABBITMQ_HOST
           value: rabbitmq
+        - name: JAVA_TOOL_OPTIONS
+          value: "-javaagent:/otel-agent/opentelemetry-javaagent.jar -XX:TieredStopAtLevel=1 -Xms64m -Xmx512m -XX:+UseContainerSupport"
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "http://lgtm:4318"
+        - name: OTEL_EXPORTER_OTLP_PROTOCOL
+          value: "http/protobuf"
+        - name: OTEL_PROPAGATORS
+          value: "tracecontext,baggage"
+        - name: OTEL_SERVICE_NAME
+          value: "order"
+        - name: OTEL_RESOURCE_ATTRIBUTES
+          value: "deployment.environment=kubernetes"
+        - name: LOGGING_PATTERN_LEVEL
+          value: "%5p [${spring.application.name:},%X{trace_id:-},%X{span_id:-}]"
+        - name: OTEL_LOGS_EXPORTER
+          value: "otlp"
+        - name: OTEL_METRICS_EXPORTER
+          value: "otlp"
+        - name: OTEL_TRACES_EXPORTER
+          value: "otlp"
+        - name: OTEL_INSTRUMENTATION_LOGBACK_APPENDER_ENABLED
+          value: "true"
+        - name: OTEL_INSTRUMENTATION_LOGBACK_MDC_ENABLED
+          value: "true"
+        - name: OTEL_INSTRUMENTATION_JDBC_ENABLED
+          value: "true"
         resources:
           requests:
-            memory: "256Mi"
-            cpu: "250m"
+            memory: "128Mi"
+            cpu: "100m"
           limits:
-            memory: "1Gi"
+            memory: "768Mi"
             cpu: "500m"
         livenessProbe:
           httpGet:
-            path: /actuator/health
+            path: /actuator/health/liveness
             port: 8080
-          initialDelaySeconds: 40
-          periodSeconds: 10
+          initialDelaySeconds: 45
+          periodSeconds: 5
+          failureThreshold: 5
         readinessProbe:
           httpGet:
-            path: /actuator/health
+            path: /actuator/health/readiness
             port: 8080
-          initialDelaySeconds: 30
-          periodSeconds: 5
+          initialDelaySeconds: 35
+          periodSeconds: 3
+          failureThreshold: 10
       volumes:
       - name: config
         configMap:
           name: order-config
+      - name: otel-agent
+        emptyDir: {}
       initContainers:
+      - name: otel-agent-downloader
+        image: curlimages/curl:8.10.1
+        command: ['sh', '-c', "curl -fsSL -o /otel-agent/opentelemetry-javaagent.jar https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/download/v2.25.0/opentelemetry-javaagent.jar && echo OTel agent downloaded"]
+        volumeMounts:
+        - name: otel-agent
+          mountPath: /otel-agent
       - name: wait-for-postgres
         image: busybox:1.35
         command: ['sh', '-c', "until nc -z postgres 5432; do echo waiting for postgres; sleep 2; done"]
@@ -376,23 +505,13 @@ metadata:
   name: payment-config
   namespace: microservices
 data:
+  SPRING_RABBITMQ_HOST: rabbitmq
   application.yaml: |
     server:
       port: 8080
     spring:
       application:
         name: payment
-      datasource:
-        url: jdbc:postgresql://postgres:5432/payment
-        username: postgres
-        password: postgres
-        driver-class-name: org.postgresql.Driver
-      jpa:
-        hibernate:
-          ddl-auto: update
-        properties:
-          hibernate:
-            dialect: org.hibernate.dialect.PostgreSQLDialect
       rabbitmq:
         host: rabbitmq
         port: 5672
@@ -426,6 +545,11 @@ metadata:
   namespace: microservices
 spec:
   replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
   selector:
     matchLabels:
       app: payment
@@ -443,39 +567,78 @@ spec:
         volumeMounts:
         - name: config
           mountPath: /config
+        - name: otel-agent
+          mountPath: /otel-agent
+        envFrom:
+          - configMapRef:
+              name: payment-config
         env:
         - name: SPRING_CONFIG_LOCATION
           value: file:/config/application.yaml
         - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
           value: http://eureka:8761/eureka/
-        - name: SPRING_DATASOURCE_URL
-          value: jdbc:postgresql://postgres:5432/payment
         - name: SPRING_RABBITMQ_HOST
           value: rabbitmq
+        - name: JAVA_TOOL_OPTIONS
+          value: "-javaagent:/otel-agent/opentelemetry-javaagent.jar -XX:TieredStopAtLevel=1 -Xms64m -Xmx512m -XX:+UseContainerSupport"
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "http://lgtm:4318"
+        - name: OTEL_EXPORTER_OTLP_PROTOCOL
+          value: "http/protobuf"
+        - name: OTEL_PROPAGATORS
+          value: "tracecontext,baggage"
+        - name: OTEL_SERVICE_NAME
+          value: "payment"
+        - name: OTEL_RESOURCE_ATTRIBUTES
+          value: "deployment.environment=kubernetes"
+        - name: LOGGING_PATTERN_LEVEL
+          value: "%5p [${spring.application.name:},%X{trace_id:-},%X{span_id:-}]"
+        - name: OTEL_LOGS_EXPORTER
+          value: "otlp"
+        - name: OTEL_METRICS_EXPORTER
+          value: "otlp"
+        - name: OTEL_TRACES_EXPORTER
+          value: "otlp"
+        - name: OTEL_INSTRUMENTATION_LOGBACK_APPENDER_ENABLED
+          value: "true"
+        - name: OTEL_INSTRUMENTATION_LOGBACK_MDC_ENABLED
+          value: "true"
+        - name: OTEL_INSTRUMENTATION_JDBC_ENABLED
+          value: "true"
         resources:
           requests:
-            memory: "256Mi"
-            cpu: "250m"
+            memory: "128Mi"
+            cpu: "100m"
           limits:
-            memory: "1Gi"
+            memory: "768Mi"
             cpu: "500m"
         livenessProbe:
           httpGet:
-            path: /actuator/health
+            path: /actuator/health/liveness
             port: 8080
-          initialDelaySeconds: 40
-          periodSeconds: 10
+          initialDelaySeconds: 45
+          periodSeconds: 5
+          failureThreshold: 5
         readinessProbe:
           httpGet:
-            path: /actuator/health
+            path: /actuator/health/readiness
             port: 8080
-          initialDelaySeconds: 30
-          periodSeconds: 5
+          initialDelaySeconds: 35
+          periodSeconds: 3
+          failureThreshold: 10
       volumes:
       - name: config
         configMap:
           name: payment-config
+      - name: otel-agent
+        emptyDir: {}
       initContainers:
+      - name: otel-agent-downloader
+        image: curlimages/curl:8.10.1
+        command: ['sh', '-c', "curl -fsSL -o /otel-agent/opentelemetry-javaagent.jar https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/download/v2.25.0/opentelemetry-javaagent.jar && echo OTel agent downloaded"]
+        volumeMounts:
+        - name: otel-agent
+          mountPath: /otel-agent
       - name: wait-for-postgres
         image: busybox:1.35
         command: ['sh', '-c', "until nc -z postgres 5432; do echo waiting for postgres; sleep 2; done"]
@@ -509,17 +672,6 @@ data:
     spring:
       application:
         name: shipping
-      datasource:
-        url: jdbc:postgresql://postgres:5432/shipping
-        username: postgres
-        password: postgres
-        driver-class-name: org.postgresql.Driver
-      jpa:
-        hibernate:
-          ddl-auto: update
-        properties:
-          hibernate:
-            dialect: org.hibernate.dialect.PostgreSQLDialect
       rabbitmq:
         host: rabbitmq
         port: 5672
@@ -553,6 +705,11 @@ metadata:
   namespace: microservices
 spec:
   replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
   selector:
     matchLabels:
       app: shipping
@@ -570,39 +727,75 @@ spec:
         volumeMounts:
         - name: config
           mountPath: /config
+        - name: otel-agent
+          mountPath: /otel-agent
         env:
         - name: SPRING_CONFIG_LOCATION
           value: file:/config/application.yaml
         - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
           value: http://eureka:8761/eureka/
-        - name: SPRING_DATASOURCE_URL
-          value: jdbc:postgresql://postgres:5432/shipping
         - name: SPRING_RABBITMQ_HOST
           value: rabbitmq
+        - name: JAVA_TOOL_OPTIONS
+          value: "-javaagent:/otel-agent/opentelemetry-javaagent.jar -XX:TieredStopAtLevel=1 -Xms64m -Xmx512m -XX:+UseContainerSupport"
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "http://lgtm:4318"
+        - name: OTEL_EXPORTER_OTLP_PROTOCOL
+          value: "http/protobuf"
+        - name: OTEL_PROPAGATORS
+          value: "tracecontext,baggage"
+        - name: OTEL_SERVICE_NAME
+          value: "shipping"
+        - name: OTEL_RESOURCE_ATTRIBUTES
+          value: "deployment.environment=kubernetes"
+        - name: LOGGING_PATTERN_LEVEL
+          value: "%5p [${spring.application.name:},%X{trace_id:-},%X{span_id:-}]"
+        - name: OTEL_LOGS_EXPORTER
+          value: "otlp"
+        - name: OTEL_METRICS_EXPORTER
+          value: "otlp"
+        - name: OTEL_TRACES_EXPORTER
+          value: "otlp"
+        - name: OTEL_INSTRUMENTATION_LOGBACK_APPENDER_ENABLED
+          value: "true"
+        - name: OTEL_INSTRUMENTATION_LOGBACK_MDC_ENABLED
+          value: "true"
+        - name: OTEL_INSTRUMENTATION_JDBC_ENABLED
+          value: "true"
         resources:
           requests:
-            memory: "256Mi"
-            cpu: "250m"
+            memory: "128Mi"
+            cpu: "100m"
           limits:
-            memory: "1Gi"
+            memory: "768Mi"
             cpu: "500m"
         livenessProbe:
           httpGet:
-            path: /actuator/health
+            path: /actuator/health/liveness
             port: 8080
-          initialDelaySeconds: 40
-          periodSeconds: 10
+          initialDelaySeconds: 45
+          periodSeconds: 5
+          failureThreshold: 5
         readinessProbe:
           httpGet:
-            path: /actuator/health
+            path: /actuator/health/readiness
             port: 8080
-          initialDelaySeconds: 30
-          periodSeconds: 5
+          initialDelaySeconds: 35
+          periodSeconds: 3
+          failureThreshold: 10
       volumes:
       - name: config
         configMap:
           name: shipping-config
+      - name: otel-agent
+        emptyDir: {}
       initContainers:
+      - name: otel-agent-downloader
+        image: curlimages/curl:8.10.1
+        command: ['sh', '-c', "curl -fsSL -o /otel-agent/opentelemetry-javaagent.jar https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/download/v2.25.0/opentelemetry-javaagent.jar && echo OTel agent downloaded"]
+        volumeMounts:
+        - name: otel-agent
+          mountPath: /otel-agent
       - name: wait-for-postgres
         image: busybox:1.35
         command: ['sh', '-c', "until nc -z postgres 5432; do echo waiting for postgres; sleep 2; done"]
@@ -671,6 +864,11 @@ metadata:
   namespace: microservices
 spec:
   replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
   selector:
     matchLabels:
       app: inventory
@@ -688,6 +886,8 @@ spec:
         volumeMounts:
         - name: config
           mountPath: /config
+        - name: otel-agent
+          mountPath: /otel-agent
         env:
         - name: SPRING_CONFIG_LOCATION
           value: file:/config/application.yaml
@@ -695,30 +895,66 @@ spec:
           value: http://eureka:8761/eureka/
         - name: SPRING_DATASOURCE_URL
           value: jdbc:postgresql://postgres:5432/inventory
+        - name: JAVA_TOOL_OPTIONS
+          value: "-javaagent:/otel-agent/opentelemetry-javaagent.jar -XX:TieredStopAtLevel=1 -Xms64m -Xmx512m -XX:+UseContainerSupport"
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "http://lgtm:4318"
+        - name: OTEL_EXPORTER_OTLP_PROTOCOL
+          value: "http/protobuf"
+        - name: OTEL_PROPAGATORS
+          value: "tracecontext,baggage"
+        - name: OTEL_SERVICE_NAME
+          value: "inventory"
+        - name: OTEL_RESOURCE_ATTRIBUTES
+          value: "deployment.environment=kubernetes"
+        - name: LOGGING_PATTERN_LEVEL
+          value: "%5p [${spring.application.name:},%X{trace_id:-},%X{span_id:-}]"
+        - name: OTEL_LOGS_EXPORTER
+          value: "otlp"
+        - name: OTEL_METRICS_EXPORTER
+          value: "otlp"
+        - name: OTEL_TRACES_EXPORTER
+          value: "otlp"
+        - name: OTEL_INSTRUMENTATION_LOGBACK_APPENDER_ENABLED
+          value: "true"
+        - name: OTEL_INSTRUMENTATION_LOGBACK_MDC_ENABLED
+          value: "true"
+        - name: OTEL_INSTRUMENTATION_JDBC_ENABLED
+          value: "true"
         resources:
           requests:
-            memory: "256Mi"
-            cpu: "250m"
+            memory: "128Mi"
+            cpu: "100m"
           limits:
-            memory: "1Gi"
+            memory: "768Mi"
             cpu: "500m"
         livenessProbe:
           httpGet:
-            path: /actuator/health
+            path: /actuator/health/liveness
             port: 8080
-          initialDelaySeconds: 40
-          periodSeconds: 10
+          initialDelaySeconds: 45
+          periodSeconds: 5
+          failureThreshold: 5
         readinessProbe:
           httpGet:
-            path: /actuator/health
+            path: /actuator/health/readiness
             port: 8080
-          initialDelaySeconds: 30
-          periodSeconds: 5
+          initialDelaySeconds: 35
+          periodSeconds: 3
+          failureThreshold: 10
       volumes:
       - name: config
         configMap:
           name: inventory-config
+      - name: otel-agent
+        emptyDir: {}
       initContainers:
+      - name: otel-agent-downloader
+        image: curlimages/curl:8.10.1
+        command: ['sh', '-c', "curl -fsSL -o /otel-agent/opentelemetry-javaagent.jar https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/download/v2.25.0/opentelemetry-javaagent.jar && echo OTel agent downloaded"]
+        volumeMounts:
+        - name: otel-agent
+          mountPath: /otel-agent
       - name: wait-for-postgres
         image: busybox:1.35
         command: ['sh', '-c', "until nc -z postgres 5432; do echo waiting for postgres; sleep 2; done"]
@@ -776,6 +1012,11 @@ metadata:
   namespace: microservices
 spec:
   replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
   selector:
     matchLabels:
       app: notification
@@ -793,6 +1034,8 @@ spec:
         volumeMounts:
         - name: config
           mountPath: /config
+        - name: otel-agent
+          mountPath: /otel-agent
         env:
         - name: SPRING_CONFIG_LOCATION
           value: file:/config/application.yaml
@@ -800,30 +1043,66 @@ spec:
           value: http://eureka:8761/eureka/
         - name: SPRING_RABBITMQ_HOST
           value: rabbitmq
+        - name: JAVA_TOOL_OPTIONS
+          value: "-javaagent:/otel-agent/opentelemetry-javaagent.jar -XX:TieredStopAtLevel=1 -Xms64m -Xmx512m -XX:+UseContainerSupport"
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "http://lgtm:4318"
+        - name: OTEL_EXPORTER_OTLP_PROTOCOL
+          value: "http/protobuf"
+        - name: OTEL_PROPAGATORS
+          value: "tracecontext,baggage"
+        - name: OTEL_SERVICE_NAME
+          value: "notification"
+        - name: OTEL_RESOURCE_ATTRIBUTES
+          value: "deployment.environment=kubernetes"
+        - name: LOGGING_PATTERN_LEVEL
+          value: "%5p [${spring.application.name:},%X{trace_id:-},%X{span_id:-}]"
+        - name: OTEL_LOGS_EXPORTER
+          value: "otlp"
+        - name: OTEL_METRICS_EXPORTER
+          value: "otlp"
+        - name: OTEL_TRACES_EXPORTER
+          value: "otlp"
+        - name: OTEL_INSTRUMENTATION_LOGBACK_APPENDER_ENABLED
+          value: "true"
+        - name: OTEL_INSTRUMENTATION_LOGBACK_MDC_ENABLED
+          value: "true"
+        - name: OTEL_INSTRUMENTATION_JDBC_ENABLED
+          value: "true"
         resources:
           requests:
-            memory: "256Mi"
-            cpu: "250m"
+            memory: "128Mi"
+            cpu: "100m"
           limits:
-            memory: "1Gi"
+            memory: "768Mi"
             cpu: "500m"
         livenessProbe:
           httpGet:
-            path: /actuator/health
+            path: /actuator/health/liveness
             port: 8080
-          initialDelaySeconds: 40
-          periodSeconds: 10
+          initialDelaySeconds: 45
+          periodSeconds: 5
+          failureThreshold: 5
         readinessProbe:
           httpGet:
-            path: /actuator/health
+            path: /actuator/health/readiness
             port: 8080
-          initialDelaySeconds: 30
-          periodSeconds: 5
+          initialDelaySeconds: 35
+          periodSeconds: 3
+          failureThreshold: 10
       volumes:
       - name: config
         configMap:
           name: notification-config
+      - name: otel-agent
+        emptyDir: {}
       initContainers:
+      - name: otel-agent-downloader
+        image: curlimages/curl:8.10.1
+        command: ['sh', '-c', "curl -fsSL -o /otel-agent/opentelemetry-javaagent.jar https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/download/v2.25.0/opentelemetry-javaagent.jar && echo OTel agent downloaded"]
+        volumeMounts:
+        - name: otel-agent
+          mountPath: /otel-agent
       - name: wait-for-rabbitmq
         image: busybox:1.35
         command: ['sh', '-c', "until nc -z rabbitmq 5672; do echo waiting for rabbitmq; sleep 2; done"]

@@ -86,13 +86,50 @@ Everything is deployed in namespace:
 Apply in this order:
 1. `k8s/01-infrastructure.yaml`
 2. `k8s/02-eureka-gateway.yaml`
-3. `k8s/03-microservices.yaml`
+3. `k8s/04-lgtm.yaml`
+4. `k8s/05-otel-agent.yaml`
+5. `k8s/03-microservices.yaml`
 
 ### Core infrastructure
 `k8s/01-infrastructure.yaml` provides at least:
 - `postgres`
 - `rabbitmq`
 - `wiremock`
+
+`k8s/04-lgtm.yaml` provides:
+- `lgtm` — Grafana LGTM all-in-one (Grafana + Loki + Tempo + Prometheus)
+  - Grafana UI: `http://localhost:3000` (LoadBalancer, no auth in dev)
+  - OTLP HTTP: `http://lgtm:4318` (cluster-internal, used by OTel agents)
+  - OTLP gRPC: `lgtm:4317`
+
+`k8s/05-otel-agent.yaml` provides:
+- `ConfigMap/otel-agent-downloader` — script downloaded by every microservice initContainer
+
+---
+
+## Observability — OTel Zero-code Instrumentation
+
+Every microservice pod uses the **OpenTelemetry Java Agent v2.25.0** for zero-code instrumentation.
+
+Strategy:
+- No code changes in any microservice
+- Each Deployment has an `initContainer` (`otel-agent-downloader`) that downloads the agent JAR from GitHub into an `emptyDir` volume
+- The app container mounts that same volume and activates the agent via `JAVA_TOOL_OPTIONS`
+- All signals (traces, metrics, logs) are sent via OTLP/HTTP to `http://lgtm:4318`
+
+Env vars set in every microservice pod:
+```
+JAVA_TOOL_OPTIONS=-javaagent:/otel-agent/opentelemetry-javaagent.jar
+OTEL_EXPORTER_OTLP_ENDPOINT=http://lgtm:4318
+OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
+OTEL_SERVICE_NAME=<service-name>
+OTEL_RESOURCE_ATTRIBUTES=deployment.environment=kubernetes
+OTEL_LOGS_EXPORTER=otlp
+OTEL_METRICS_EXPORTER=otlp
+OTEL_TRACES_EXPORTER=otlp
+```
+
+To upgrade the agent: change the version in the `wget` URL in all Deployment initContainers in `k8s/03-microservices.yaml`.
 
 ### Service discovery
 - `eureka` runs inside K8s as a ClusterIP service
