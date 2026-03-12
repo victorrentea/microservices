@@ -1,0 +1,8 @@
+replicas: 2
+datasourceHost: postgres
+rabbitmqHost: rabbitmq
+hpa:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 4
+  cpuTargetPercent: 70

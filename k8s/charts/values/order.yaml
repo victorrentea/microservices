@@ -1,0 +1,3 @@
+datasourceHost: postgres
+datasourceDb: order_db
+rabbitmqHost: rabbitmq

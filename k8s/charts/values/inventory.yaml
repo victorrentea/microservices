@@ -1,0 +1,2 @@
+datasourceHost: postgres
+rabbitmqHost: rabbitmq

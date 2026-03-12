@@ -1,0 +1,3 @@
+rabbitmqHost: rabbitmq
+feignUrls:
+  shipping-provider: http://wiremock:8080

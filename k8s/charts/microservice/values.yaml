@@ -1,0 +1,35 @@
+# Default values — overridden per service in the umbrella chart
+
+image:
+  repository: victorrentea/victor
+  tag: "1.0"
+  pullPolicy: IfNotPresent
+
+port: 8080
+replicas: 1
+
+# Set to a hostname to enable datasource (e.g. "postgres")
+datasourceHost: ""
+datasourceDb: ""   # e.g. "order_db" — defaults to service name if empty
+
+# Set to a hostname to enable RabbitMQ (e.g. "rabbitmq")
+rabbitmqHost: ""
+
+# Feign URL overrides: map of client-name -> url
+feignUrls: {}
+#  payment-gateway: http://wiremock:8080
+
+# HPA — disabled by default
+hpa:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 4
+  cpuTargetPercent: 70
+
+# OTel — shared defaults (override per environment if needed)
+otel:
+  endpoint: "http://lgtm:4318"
+  protocol: "http/protobuf"
+
+# Eureka URL (K8s default — local default is in application.yaml)
+eurekaUrl: "http://eureka:8761/eureka/"

@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: {{ .Values.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}
+    spec:
+      containers:
+      - name: {{ .Release.Name }}
+        image: {{ .Values.image.repository }}:{{ .Release.Name }}-{{ .Values.image.tag }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - containerPort: {{ .Values.port }}
+        volumeMounts:
+        - name: otel-agent
+          mountPath: /otel-agent
+        envFrom:
+        - configMapRef:
+            name: {{ .Release.Name }}-config
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "768Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /actuator/health/liveness
+            port: {{ .Values.port }}
+          initialDelaySeconds: 45
+          periodSeconds: 5
+          failureThreshold: 5
+        readinessProbe:
+          httpGet:
+            path: /actuator/health/readiness
+            port: {{ .Values.port }}
+          initialDelaySeconds: 35
+          periodSeconds: 3
+          failureThreshold: 10
+      volumes:
+      - name: otel-agent
+        emptyDir: {}
+      initContainers:
+      - name: otel-agent-downloader
+        image: curlimages/curl:8.10.1
+        command: ['sh', '-c', "curl -fsSL -o /otel-agent/opentelemetry-javaagent.jar https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/download/v2.25.0/opentelemetry-javaagent.jar && echo OTel agent downloaded"]
+        volumeMounts:
+        - name: otel-agent
+          mountPath: /otel-agent
+      {{- if .Values.datasourceHost }}
+      - name: wait-for-postgres
+        image: busybox:1.35
+        command: ['sh', '-c', "until nc -z postgres 5432; do echo waiting for postgres; sleep 2; done"]
+      {{- end }}
+      {{- if .Values.rabbitmqHost }}
+      - name: wait-for-rabbitmq
+        image: busybox:1.35
+        command: ['sh', '-c', "until nc -z rabbitmq 5672; do echo waiting for rabbitmq; sleep 2; done"]
+      {{- end }}

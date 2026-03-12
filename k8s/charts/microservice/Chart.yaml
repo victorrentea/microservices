@@ -1,0 +1,5 @@
+apiVersion: v2
+name: microservice
+description: Generic reusable chart for a Spring Boot microservice in this project
+type: application
+version: 1.0.0
