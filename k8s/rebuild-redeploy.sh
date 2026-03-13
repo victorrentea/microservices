@@ -49,13 +49,18 @@ for service in "${SERVICES[@]}"; do
   docker build -t "${IMAGE_REPO}:${service}-${VERSION}" "$PROJECT_ROOT/$service/" -q
   ok "$service image built: ${IMAGE_REPO}:${service}-${VERSION}"
 
-  log "[$service] Rollout restart"
-  kubectl rollout restart deployment/"$service" -n "$NAMESPACE"
-done
-
-log "Waiting for rollouts..."
-for service in "${SERVICES[@]}"; do
-  kubectl rollout status deployment/"$service" -n "$NAMESPACE" --timeout=120s
+  # Redeploy via Helm if a values file exists, otherwise plain kubectl restart
+  HELM_SERVICES=(customer catalog order payment shipping inventory notification)
+  if [[ " ${HELM_SERVICES[*]} " =~ " ${service} " ]]; then
+    log "[$service] Helm upgrade"
+    helm upgrade --install "$service" "$SCRIPT_DIR/charts/microservice" \
+      -f "$SCRIPT_DIR/charts/values/$service.yaml" \
+      -n "$NAMESPACE" --wait --timeout 120s
+  else
+    log "[$service] Rollout restart"
+    kubectl rollout restart deployment/"$service" -n "$NAMESPACE"
+    kubectl rollout status deployment/"$service" -n "$NAMESPACE" --timeout=120s
+  fi
   ok "$service is Ready"
 done
 

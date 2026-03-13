@@ -242,7 +242,7 @@ kubectl run -it --rm --image=curlimages/curl \
 kubectl top pods -n microservices
 
 # Increase resource limits in manifests:
-# Edit 03-microservices.yaml and adjust:
+# Edit 03-microservices.yaml.replaced-by-helm and adjust:
 # resources:
 #   requests:
 #     memory: "512Mi"
@@ -250,7 +250,7 @@ kubectl top pods -n microservices
 #     memory: "1Gi"
 
 # Apply changes:
-kubectl apply -f k8s/03-microservices.yaml
+kubectl apply -f k8s/03-microservices.yaml.replaced-by-helm
 ```
 
 #### CPU throttling

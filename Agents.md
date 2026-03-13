@@ -34,9 +34,10 @@ Important:
 - local deploy flow is driven by:
   - `k8s/setup.sh`
   - `k8s/rebuild-redeploy.sh`
+  - `k8s/helm-deploy.sh`
   - `k8s/01-infrastructure.yaml`
   - `k8s/02-eureka-gateway.yaml`
-  - `k8s/03-microservices.yaml`
+  - `k8s/charts/microservice/` — Helm chart for all 7 microservices
 
 ### No Docker push needed locally
 For Docker Desktop Kubernetes, **do not push images to Docker Hub for local deploy**.
@@ -84,10 +85,9 @@ Everything is deployed in namespace:
 
 ### Manifest order
 Apply in this order:
-1. `k8s/01-infrastructure.yaml` (includes postgres, rabbitmq, wiremock, lgtm)
-2. `k8s/02-eureka-gateway.yaml`
-3. `k8s/05-otel-agent.yaml`
-4. `k8s/03-microservices.yaml`
+1. `k8s/01-infrastructure.yaml` (Namespace, Postgres, RabbitMQ, WireMock, LGTM)
+2. `k8s/02-eureka-gateway.yaml` (Eureka, API Gateway)
+3. `./k8s/helm-deploy.sh` — deploys all 7 microservices via Helm
 
 ### Core infrastructure
 `k8s/01-infrastructure.yaml` provides at least:
@@ -101,8 +101,47 @@ Apply in this order:
   - OTLP HTTP: `http://lgtm:4318` (cluster-internal, used by OTel agents)
   - OTLP gRPC: `lgtm:4317`
 
-`k8s/05-otel-agent.yaml` provides:
-- `ConfigMap/otel-agent-downloader` — script downloaded by every microservice initContainer
+The OTel agent downloader is **inline in the Helm chart** (`initContainer` in `deployment.yaml`), not a separate manifest.
+
+---
+
+## Helm Charts — Microservice Deployments
+
+The 7 microservices (`customer`, `catalog`, `order`, `payment`, `shipping`, `inventory`, `notification`) are deployed via a **shared Helm chart** that eliminates repetition.
+
+```
+k8s/charts/
+  microservice/          ← single reusable chart (templates only once)
+    Chart.yaml
+    values.yaml          ← shared defaults: OTel, Eureka URL, port, image, HPA off
+    templates/
+      configmap.yaml
+      deployment.yaml    ← includes OTel initContainer, conditional postgres/rabbitmq wait
+      service.yaml
+      hpa.yaml
+  values/
+    customer.yaml        ← 1 line  (datasourceHost)
+    catalog.yaml         ← 8 lines (replicas, DB, rabbit, HPA enabled)
+    order.yaml           ← 3 lines
+    payment.yaml         ← 3 lines
+    shipping.yaml        ← 3 lines
+    inventory.yaml       ← 2 lines
+    notification.yaml    ← 1 line
+```
+
+### Deploy microservices
+```bash
+./k8s/helm-deploy.sh              # all 7 services
+./k8s/helm-deploy.sh order catalog  # selected services only
+```
+
+### Check deployed releases
+```bash
+helm list -n microservices
+```
+
+### To upgrade the OTel agent version
+Change the version in the `curl` command inside `initContainers` in `k8s/charts/microservice/templates/deployment.yaml`.
 
 ---
 
@@ -128,7 +167,7 @@ OTEL_METRICS_EXPORTER=otlp
 OTEL_TRACES_EXPORTER=otlp
 ```
 
-To upgrade the agent: change the version in the `wget` URL in all Deployment initContainers in `k8s/03-microservices.yaml`.
+To upgrade the agent: change the version in the `curl` URL in the `otel-agent-downloader` initContainer in `k8s/charts/microservice/templates/deployment.yaml`.
 
 ### Service discovery
 - `eureka` runs inside K8s as a ClusterIP service
@@ -197,15 +236,15 @@ What it does:
 ### Rebuild/redeploy selected services
 `k8s/rebuild-redeploy.sh`
 
-Usage idea:
+Usage:
 - no args => rebuild all services
 - args => rebuild only selected services
 
 It does:
 - Maven package per selected service
 - local `docker build`
-- `kubectl rollout restart deployment/<service>`
-- `kubectl rollout status`
+- for the 7 Helm-managed microservices: `helm upgrade --install`
+- for eureka/api-gateway: `kubectl rollout restart`
 
 ### Teardown
 `k8s/teardown.sh`
@@ -235,13 +274,13 @@ When debugging crashes, `--previous` is often essential.
 - `kubectl rollout restart deployment/<service> -n microservices`
 - `kubectl rollout status deployment/<service> -n microservices`
 
-### ConfigMaps
-If mounted config changes do not seem applied:
-1. delete the relevant configmap
-2. `kubectl apply -f ...`
-3. restart the deployment
-
-This pattern was used repeatedly during debugging.
+### ConfigMaps (Helm-managed services)
+ConfigMaps for the 7 microservices are now managed by Helm.
+To update config for a Helm service, edit `k8s/charts/values/<service>.yaml` or `k8s/charts/microservice/values.yaml`, then:
+```bash
+./k8s/helm-deploy.sh <service>
+```
+No manual `kubectl delete configmap` needed — Helm handles it.
 
 ---
 
@@ -428,10 +467,12 @@ When debugging local K8s failures:
 - `lombok.config`
 - `shared/pom.xml`
 - `shared/src/main/resources/config/application.yaml`
+- `k8s/charts/microservice/values.yaml`
+- `k8s/charts/values/<service>.yaml`
+- `k8s/helm-deploy.sh`
 - `k8s/setup.sh`
 - `k8s/rebuild-redeploy.sh`
 - `k8s/01-infrastructure.yaml`
 - `k8s/02-eureka-gateway.yaml`
-- `k8s/03-microservices.yaml`
 - `tests.sh`
 

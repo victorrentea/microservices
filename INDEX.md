@@ -284,7 +284,7 @@ resources:
 
 Then apply:
 ```bash
-kubectl apply -f k8s/03-microservices.yaml
+kubectl apply -f k8s/03-microservices.yaml.replaced-by-helm
 ```
 
 ## 🔍 Monitoring & Debugging
