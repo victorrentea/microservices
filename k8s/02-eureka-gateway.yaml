@@ -19,21 +19,9 @@ metadata:
   name: eureka-config
   namespace: microservices
 data:
-  application.yaml: |
-    server:
-      port: 8761
-    eureka:
-      instance:
-        hostname: eureka
-        prefer-ip-address: true
-      client:
-        registerWithEureka: false
-        fetchRegistry: false
-        serviceUrl:
-          defaultZone: http://eureka:8761/eureka/
-    spring:
-      application:
-        name: eureka
+  EUREKA_INSTANCE_HOSTNAME: "eureka"
+  EUREKA_INSTANCE_PREFER_IP_ADDRESS: "true"
+  SPRING_APPLICATION_JSON: '{"eureka":{"client":{"serviceUrl":{"defaultZone":"http://eureka:8761/eureka/"}}}}'
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -56,12 +44,9 @@ spec:
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8761
-        volumeMounts:
-        - name: config
-          mountPath: /config
-        env:
-        - name: SPRING_CONFIG_LOCATION
-          value: file:/config/application.yaml
+        envFrom:
+        - configMapRef:
+            name: eureka-config
         resources:
           requests:
             memory: "512Mi"
@@ -81,10 +66,6 @@ spec:
             port: 8761
           initialDelaySeconds: 20
           periodSeconds: 5
-      volumes:
-      - name: config
-        configMap:
-          name: eureka-config
 ---
 # API Gateway
 apiVersion: v1
@@ -120,99 +101,10 @@ data:
   OTEL_INSTRUMENTATION_LOGBACK_APPENDER_ENABLED: "true"
   OTEL_INSTRUMENTATION_LOGBACK_MDC_ENABLED: "true"
   OTEL_INSTRUMENTATION_JDBC_ENABLED: "true"
-  application.yaml: |
-    server:
-      port: 8080
-    spring:
-      application:
-        name: api-gateway
-      cloud:
-        gateway:
-          routes:
-          # Legacy direct paths used by tests.sh
-          - id: order-direct
-            uri: http://order:8080
-            predicates:
-            - Path=/order,/order/**
-          - id: payment-direct
-            uri: http://payment:8080
-            predicates:
-            - Path=/payment/**
-          - id: shipping-direct
-            uri: http://shipping:8080
-            predicates:
-            - Path=/shipping/**
-          - id: customer-direct
-            uri: http://customer:8080
-            predicates:
-            - Path=/customer/**
-          - id: catalog-direct
-            uri: http://catalog:8080
-            predicates:
-            - Path=/catalog/**
-          - id: inventory-direct
-            uri: http://inventory:8080
-            predicates:
-            - Path=/inventory/**
-          - id: notification-direct
-            uri: http://notification:8080
-            predicates:
-            - Path=/notification/**
-
-          # /api/* paths for external-facing APIs
-          - id: customer-api
-            uri: http://customer:8080
-            predicates:
-            - Path=/api/customers/**
-            filters:
-            - RewritePath=/api/customers/(?<path>.*),/$\{path}
-          - id: catalog-api
-            uri: http://catalog:8080
-            predicates:
-            - Path=/api/catalog/**
-            filters:
-            - RewritePath=/api/catalog/(?<path>.*),/$\{path}
-          - id: order-api
-            uri: http://order:8080
-            predicates:
-            - Path=/api/orders/**
-            filters:
-            - RewritePath=/api/orders/(?<path>.*),/$\{path}
-          - id: inventory-api
-            uri: http://inventory:8080
-            predicates:
-            - Path=/api/inventory/**
-            filters:
-            - RewritePath=/api/inventory/(?<path>.*),/$\{path}
-          - id: payment-api
-            uri: http://payment:8080
-            predicates:
-            - Path=/api/payments/**
-            filters:
-            - RewritePath=/api/payments/(?<path>.*),/$\{path}
-          - id: shipping-api
-            uri: http://shipping:8080
-            predicates:
-            - Path=/api/shipping/**
-            filters:
-            - RewritePath=/api/shipping/(?<path>.*),/$\{path}
-          - id: notification-api
-            uri: http://notification:8080
-            predicates:
-            - Path=/api/notifications/**
-            filters:
-            - RewritePath=/api/notifications/(?<path>.*),/$\{path}
-    eureka:
-      client:
-        serviceUrl:
-          defaultZone: http://eureka:8761/eureka/
-      instance:
-        prefer-ip-address: true
-    management:
-      endpoints:
-        web:
-          exposure:
-            include: health,metrics,prometheus
+  EUREKA_INSTANCE_PREFER_IP_ADDRESS: "true"
+  SERVER_PORT: "8080"
+  SPRING_APPLICATION_NAME: "api-gateway"
+  SPRING_APPLICATION_JSON: '{"eureka":{"client":{"serviceUrl":{"defaultZone":"http://eureka:8761/eureka/"}}}}'
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -236,13 +128,8 @@ spec:
         ports:
         - containerPort: 8080
         volumeMounts:
-        - name: config
-          mountPath: /config
         - name: otel-agent
           mountPath: /otel-agent
-        env:
-        - name: SPRING_CONFIG_LOCATION
-          value: file:/config/application.yaml
         envFrom:
         - configMapRef:
             name: api-gateway-config
@@ -266,9 +153,6 @@ spec:
           initialDelaySeconds: 20
           periodSeconds: 5
       volumes:
-      - name: config
-        configMap:
-          name: api-gateway-config
       - name: otel-agent
         emptyDir: {}
       initContainers:

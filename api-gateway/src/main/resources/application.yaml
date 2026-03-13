@@ -1,35 +1,93 @@
-spring.application.name: gateway
-server.port: 80
-
 spring:
+  application:
+    name: api-gateway
   cloud:
     gateway:
       routes:
-        - id: customer
-          uri: lb://customer
+        # Direct paths (used by tests and internal calls)
+        - id: order-direct
+          uri: lb://order
           predicates:
-            - Path=/customer/**
-#          filters:
-#            - AddRequestHeader=Authorization, Basic dXNlcjp1c2Vy
-        - id: catalog
-          # lb:// = Load Balancing = send round-robin requests to all instances of catalog registered with Eureka
-          uri: lb://catalog
-          predicates:
-            - Path=/catalog/**
-        - id: payment
+            - Path=/order,/order/**
+        - id: payment-direct
           uri: lb://payment
           predicates:
             - Path=/payment/**
-        - id: stock
-          uri: lb://inventory
-          predicates:
-            - Path=/stock/**
-        - id: shipping
+        - id: shipping-direct
           uri: lb://shipping
           predicates:
             - Path=/shipping/**
-        - id: order
+        - id: customer-direct
+          uri: lb://customer
+          predicates:
+            - Path=/customer/**
+        - id: catalog-direct
+          uri: lb://catalog
+          predicates:
+            - Path=/catalog/**
+        - id: inventory-direct
+          uri: lb://inventory
+          predicates:
+            - Path=/inventory/**
+        - id: notification-direct
+          uri: lb://notification
+          predicates:
+            - Path=/notification/**
+
+        # /api/* external-facing routes
+        - id: customer-api
+          uri: lb://customer
+          predicates:
+            - Path=/api/customers/**
+          filters:
+            - RewritePath=/api/customers/(?<path>.*),/$\{path}
+        - id: catalog-api
+          uri: lb://catalog
+          predicates:
+            - Path=/api/catalog/**
+          filters:
+            - RewritePath=/api/catalog/(?<path>.*),/$\{path}
+        - id: order-api
           uri: lb://order
           predicates:
-            - Path=/order/**
+            - Path=/api/orders/**
+          filters:
+            - RewritePath=/api/orders/(?<path>.*),/$\{path}
+        - id: inventory-api
+          uri: lb://inventory
+          predicates:
+            - Path=/api/inventory/**
+          filters:
+            - RewritePath=/api/inventory/(?<path>.*),/$\{path}
+        - id: payment-api
+          uri: lb://payment
+          predicates:
+            - Path=/api/payments/**
+          filters:
+            - RewritePath=/api/payments/(?<path>.*),/$\{path}
+        - id: shipping-api
+          uri: lb://shipping
+          predicates:
+            - Path=/api/shipping/**
+          filters:
+            - RewritePath=/api/shipping/(?<path>.*),/$\{path}
+        - id: notification-api
+          uri: lb://notification
+          predicates:
+            - Path=/api/notifications/**
+          filters:
+            - RewritePath=/api/notifications/(?<path>.*),/$\{path}
 
+server:
+  port: 8080
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics,prometheus
