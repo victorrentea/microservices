@@ -3,7 +3,7 @@
 image:
   repository: victorrentea/victor
   tag: "1.0"
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
 
 port: 8080
 replicas: 1

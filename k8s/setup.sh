@@ -42,10 +42,11 @@ log "Maven build (all modules)"
 (cd "$PROJECT_ROOT" && mvn clean package -DskipTests -q)
 ok "All JARs built"
 
-# --- Docker build all images locally ---
-log "Docker build (local images)"
+# --- Docker build + push all images ---
+log "Docker build & push images"
 for service in "${SERVICES[@]}"; do
   docker build -t "${IMAGE_REPO}:${service}-${VERSION}" "$PROJECT_ROOT/$service/" -q
+  docker push "${IMAGE_REPO}:${service}-${VERSION}" --quiet
   ok "  ${IMAGE_REPO}:${service}-${VERSION}"
 done
 
@@ -58,18 +59,20 @@ kubectl create configmap wiremock-mappings \
 kubectl apply -f "$SCRIPT_DIR/02-eureka-gateway.yaml"
 ok "Manifests applied"
 
+# --- Wait for infrastructure ---
+log "Waiting for infrastructure (postgres, rabbitmq, lgtm)..."
+kubectl wait deployment/postgres  -n "$NAMESPACE" --for=condition=available --timeout=120s
+kubectl wait deployment/rabbitmq  -n "$NAMESPACE" --for=condition=available --timeout=120s
+kubectl wait deployment/lgtm      -n "$NAMESPACE" --for=condition=available --timeout=180s
+kubectl wait deployment/eureka    -n "$NAMESPACE" --for=condition=available --timeout=120s
+kubectl wait deployment/api-gateway -n "$NAMESPACE" --for=condition=available --timeout=120s
+ok "Infrastructure ready"
+
 # --- Deploy microservices with Helm ---
 log "Deploying microservices with Helm"
 command -v helm &>/dev/null || fail "helm not found"
 "$SCRIPT_DIR/helm-deploy.sh"
 ok "Microservices deployed via Helm"
-
-# --- Wait for pods ---
-log "Waiting for infrastructure (postgres, rabbitmq, lgtm)..."
-kubectl wait deployment/postgres  -n "$NAMESPACE" --for=condition=available --timeout=120s
-kubectl wait deployment/rabbitmq  -n "$NAMESPACE" --for=condition=available --timeout=120s
-kubectl wait deployment/lgtm      -n "$NAMESPACE" --for=condition=available --timeout=180s
-ok "Infrastructure ready"
 
 log "Waiting for services..."
 for service in "${SERVICES[@]}"; do

@@ -6,6 +6,9 @@ spring:
     url: jdbc:postgresql://localhost:5432/inventory
     username: postgres
     password: postgres
+  jpa:
+    hibernate:
+      ddl-auto: update
 spring.cloud.function.definition: onOrderStatusChangedEvent
 spring.cloud.stream.bindings:
   onOrderStatusChangedEvent-in-0:

@@ -18,3 +18,5 @@ spring:
     password: postgres
   jpa:
     generate-ddl: true
+    hibernate:
+      ddl-auto: update

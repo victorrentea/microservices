@@ -32,6 +32,9 @@ spring:
     url: jdbc:postgresql://localhost:5432/customer
     username: postgres
     password: postgres
+  jpa:
+    hibernate:
+      ddl-auto: update
   cloud:
     openfeign:
       client:
